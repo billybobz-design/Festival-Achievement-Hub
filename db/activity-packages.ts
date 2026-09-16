@@ -2,6 +2,7 @@ import type { FestivalConfig } from "../app/lib/demo-store";
 import type { ActivityPackageFile, ActivityPackageManifest } from "../app/lib/activity-package";
 import { festivalConfigSchema } from "../app/lib/validation";
 import { getSql } from "./index";
+import { FestivalAlreadyExistsError } from "./claims";
 
 export type ActivityPackageSummary = {
   eventId: string;
@@ -49,11 +50,19 @@ export async function importActivityPackage(
   manifest: ActivityPackageManifest,
   importedConfig: FestivalConfig,
   files: ActivityPackageFile[],
+  createNew = false,
 ) {
   const sql = getSql();
   let savedConfig: FestivalConfig | null = null;
 
   await sql.begin(async (tx) => {
+    if (createNew) {
+      const initial = festivalConfigSchema.parse({ ...importedConfig, eventId: targetEventId, status: "closed" });
+      const inserted = await tx`INSERT INTO claim_events (event_id, status, config_json)
+        VALUES (${targetEventId}, 'closed', ${JSON.stringify(initial)})
+        ON CONFLICT (event_id) DO NOTHING RETURNING event_id`;
+      if (!inserted.length) throw new FestivalAlreadyExistsError("这个活动编号已经存在");
+    }
     const eventRows = await tx`SELECT status FROM claim_events WHERE event_id = ${targetEventId} FOR UPDATE` as { status: string }[];
     const eventRow = eventRows[0];
     if (!eventRow) throw new ActivityPackageEventNotFoundError("activity does not exist");

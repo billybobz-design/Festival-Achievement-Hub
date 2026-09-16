@@ -143,6 +143,7 @@ export function AdminConsole({ session, onSessionExpired }: { session: AdminUiSe
   const [festivals, setFestivals] = useState<FestivalSummary[]>([]);
   const [festivalDraft, setFestivalDraft] = useState<NewFestivalDraft>(emptyFestivalDraft);
   const [creatingFestival, setCreatingFestival] = useState(false);
+  const [newActivityPackage, setNewActivityPackage] = useState<File | null>(null);
   const [categoryName, setCategoryName] = useState("");
   const [draft, setDraft] = useState(emptyAchievement);
   const [notice, setNotice] = useState("");
@@ -289,11 +290,13 @@ export function AdminConsole({ session, onSessionExpired }: { session: AdminUiSe
     setCreatingFestival(true);
     setOnlineStatus("connecting");
     try {
+      const packageForm = new FormData();
+      if (newActivityPackage) packageForm.append("package", newActivityPackage);
       const response = await adminFetch("/api/admin/festivals", {
         method: "POST",
         cache: "no-store",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(festivalDraft),
+        headers: newActivityPackage ? undefined : { "content-type": "application/json" },
+        body: newActivityPackage ? packageForm : JSON.stringify(festivalDraft),
       });
       const payload = await readAdminJson<{ config?: FestivalConfig }>(response);
       if (!payload.config) throw new AdminApiError(502, "INVALID_SERVER_RESPONSE", "missing festival config");
@@ -302,10 +305,12 @@ export function AdminConsole({ session, onSessionExpired }: { session: AdminUiSe
       setConfig(newConfig);
       setPendingSave(null);
       setClaimStats([]);
-      setLimitDrafts({});
+      setLimitDrafts(Object.fromEntries(newConfig.achievements.map((item) => [item.id, String(item.claimLimit || 100)])));
+      setActivityPackage(null);
       setDraft({ ...emptyAchievement, categoryId: "" });
       setFestivals((current) => upsertFestivalSummary(current, summaryFromConfig(newConfig)));
       setFestivalDraft(emptyFestivalDraft);
+      setNewActivityPackage(null);
       setSelectedEventId(newConfig.eventId);
       setSection("activity");
       setOnlineStatus("online");
@@ -830,11 +835,24 @@ export function AdminConsole({ session, onSessionExpired }: { session: AdminUiSe
                 <div><span className="panel-kicker">NEW ACTIVITY</span><h2>创建新活动</h2></div>
                 <CalendarDays size={21} />
               </div>
+              <label>导入活动包（可选）<input key={newActivityPackage ? "selected" : "empty"} type="file" accept=".zip" disabled={creatingFestival} onChange={(event) => {
+                const file = event.target.files?.[0];
+                if (!file) return;
+                if (!file.name.toLowerCase().endsWith(".zip") || file.size > 8 * 1024 * 1024) {
+                  setNotice("请选择不超过 8 MB 的 ZIP 活动包");
+                  event.target.value = "";
+                  return;
+                }
+                setNewActivityPackage(file);
+              }} /><small>选择后使用包内名称、编号、说明、时间、分类、成就和页面；创建时校验活动包。</small></label>
+              {newActivityPackage ? <div role="status"><p>已选择：{newActivityPackage.name}。下面的手填内容不参与创建。</p><button className="text-admin-button" type="button" disabled={creatingFestival} onClick={() => setNewActivityPackage(null)}>移除活动包，恢复手动填写</button></div> : null}
+              <fieldset disabled={creatingFestival || Boolean(newActivityPackage)} className={newActivityPackage ? "new-activity-fields is-overridden" : "new-activity-fields"}>
               <label>活动名称<input required maxLength={80} value={festivalDraft.name} onChange={(event) => setFestivalDraft({ ...festivalDraft, name: event.target.value })} placeholder="例如：冬日游园会" /></label>
               <label>活动编号<input required minLength={3} maxLength={64} pattern="[a-z0-9][a-z0-9-]{2,63}" value={festivalDraft.eventId} onChange={(event) => setFestivalDraft({ ...festivalDraft, eventId: event.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") })} placeholder="winter-festival-2026" /><small>只允许小写字母、数字和连字符；打印二维码后不要修改。</small></label>
               <label>活动标记<input required maxLength={80} value={festivalDraft.eyebrow} onChange={(event) => setFestivalDraft({ ...festivalDraft, eyebrow: event.target.value })} placeholder="NCPA · 2026" /></label>
               <label>活动说明<textarea required maxLength={240} value={festivalDraft.subtitle} onChange={(event) => setFestivalDraft({ ...festivalDraft, subtitle: event.target.value })} placeholder="简要说明活动主题和参与方式" /></label>
               <label>活动时间<input required maxLength={80} value={festivalDraft.dateLabel} onChange={(event) => setFestivalDraft({ ...festivalDraft, dateLabel: event.target.value })} placeholder="12.20 / 16:00—20:00" /></label>
+              </fieldset>
               <div className="new-activity-form-actions">
                 <button className="text-admin-button" type="button" onClick={returnToOverview}><ArrowLeft size={15} />返回总览</button>
                 <button className="primary-admin-button" type="submit" disabled={creatingFestival}><Save size={16} />{creatingFestival ? "正在创建" : "创建活动"}</button>
