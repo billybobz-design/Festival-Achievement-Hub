@@ -5,6 +5,7 @@ import {
   ArrowRight,
   Camera,
   Check,
+  Gift,
   LockKeyhole,
   QrCode,
   Wrench,
@@ -47,6 +48,18 @@ type MaintenanceState = {
   message: string;
 };
 
+type LotteryWin = {
+  drawId: number;
+  lotteryId: number;
+  lotteryName: string;
+  prizeId: number;
+  prizeName: string;
+  prizeDescription: string;
+  prizeIcon: string;
+  participantCode: string;
+  drawnAt: string;
+};
+
 const inactiveFestivalConfig: FestivalConfig = {
   eventId: "",
   name: "",
@@ -69,6 +82,9 @@ export function FestivalExperience() {
   const [directClaimPending, setDirectClaimPending] = useState(false);
   const [packageEntryUrl, setPackageEntryUrl] = useState<string | null>(null);
   const [maintenance, setMaintenance] = useState<MaintenanceState>({ active: false, message: "系统正在维护，请稍后再试。" });
+  const [lotteryWins, setLotteryWins] = useState<LotteryWin[]>([]);
+  const [prizesOpen, setPrizesOpen] = useState(false);
+  const [prizesLoading, setPrizesLoading] = useState(false);
   const processedUrl = useRef(false);
   const packageFrame = useRef<HTMLIFrameElement>(null);
   const scannerVideo = useRef<HTMLVideoElement>(null);
@@ -136,6 +152,31 @@ export function FestivalExperience() {
       window.clearInterval(maintenancePoll);
     };
   }, []);
+
+  useEffect(() => {
+    if (config.status !== "active" || !config.eventId) {
+      const resetTimer = window.setTimeout(() => {
+        setLotteryWins([]);
+        setPrizesOpen(false);
+      }, 0);
+      return () => window.clearTimeout(resetTimer);
+    }
+    let cancelled = false;
+    async function loadWins(showLoading = false) {
+      if (showLoading) setPrizesLoading(true);
+      try {
+        const response = await fetch(`/api/lottery/wins?eventId=${encodeURIComponent(config.eventId)}`, { cache: "no-store" });
+        if (!response.ok) return;
+        const payload = await response.json() as { wins: LotteryWin[] };
+        if (!cancelled) setLotteryWins(payload.wins);
+      } finally {
+        if (!cancelled && showLoading) setPrizesLoading(false);
+      }
+    }
+    void loadWins();
+    const timer = window.setInterval(() => void loadWins(), 8_000);
+    return () => { cancelled = true; window.clearInterval(timer); };
+  }, [config.eventId, config.status]);
 
   const activeAchievements = useMemo(
     () => config.achievements.filter((achievement) => achievement.enabled),
@@ -538,6 +579,32 @@ export function FestivalExperience() {
             </footer>
           </div>
         )}
+
+        {!maintenance.active && config.status === "active" ? (
+          <button className="my-prizes-button" type="button" onClick={() => { setPrizesOpen(true); setPrizesLoading(true); fetch(`/api/lottery/wins?eventId=${encodeURIComponent(config.eventId)}`, { cache: "no-store" }).then((response) => response.ok ? response.json() : null).then((payload: { wins: LotteryWin[] } | null) => { if (payload) setLotteryWins(payload.wins); }).finally(() => setPrizesLoading(false)); }}>
+            <Gift size={17} /><span>我的奖品</span>{lotteryWins.length ? <strong>{lotteryWins.length}</strong> : null}
+          </button>
+        ) : null}
+
+        {prizesOpen && config.status === "active" ? (
+          <div className="prize-wallet-overlay" role="dialog" aria-modal="true" aria-label="我的中奖奖品">
+            <header><div><span>PRIZE WALLET</span><h2>我的奖品</h2></div><button type="button" onClick={() => setPrizesOpen(false)} aria-label="关闭我的奖品"><X size={20} /></button></header>
+            <div className="prize-wallet-notice"><Gift size={18} /><p><strong>请直接将本机页面出示给工作人员</strong><span>兑奖时工作人员会核对奖品名称和中奖编号。</span></p></div>
+            {prizesLoading ? <div className="prize-wallet-empty"><span className="spinner" /><p>正在读取中奖结果</p></div> : lotteryWins.length ? (
+              <div className="prize-wallet-list">
+                {lotteryWins.map((win) => <article key={win.drawId}>
+                  <div className="prize-wallet-icon"><AchievementIconGraphic icon={win.prizeIcon} alt={win.prizeName} /></div>
+                  <span className="prize-wallet-lottery">{win.lotteryName}</span>
+                  <h3>{win.prizeName}</h3>
+                  {win.prizeDescription ? <p>{win.prizeDescription}</p> : null}
+                  <div className="prize-wallet-code"><span>中奖编号</span><strong>{win.participantCode}</strong></div>
+                  <small>中奖时间 {new Date(win.drawnAt).toLocaleString("zh-CN")}</small>
+                </article>)}
+              </div>
+            ) : <div className="prize-wallet-empty"><Gift size={34} /><h3>暂时没有中奖记录</h3><p>工作人员抽取后，本页面会自动更新。</p></div>}
+            <p className="prize-wallet-footnote">中奖记录与当前浏览器绑定。请勿清除网站数据，并使用领取成就时的同一浏览器出示。</p>
+          </div>
+        ) : null}
 
         {directClaimPending ? (
           <div className="claim-overlay direct-claim-pending" role="status" aria-live="polite">

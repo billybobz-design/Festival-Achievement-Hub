@@ -112,3 +112,55 @@ export const appSettings = pgTable("app_settings", {
   updatedBy: text("updated_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+export const lotteries = pgTable("lotteries", {
+  id: serial("id").primaryKey(),
+  eventId: text("event_id").notNull().references(() => claimEvents.eventId, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  description: text("description").notNull().default(""),
+  createdBy: text("created_by").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [index("idx_lotteries_event_id").on(table.eventId)]);
+
+export const lotteryRequirements = pgTable("lottery_requirements", {
+  lotteryId: integer("lottery_id").notNull().references(() => lotteries.id, { onDelete: "cascade" }),
+  eventId: text("event_id").notNull(),
+  achievementId: text("achievement_id").notNull(),
+}, (table) => [
+  primaryKey({ columns: [table.lotteryId, table.achievementId] }),
+  foreignKey({ columns: [table.eventId, table.achievementId], foreignColumns: [claimRules.eventId, claimRules.achievementId] }).onDelete("cascade"),
+]);
+
+export const lotteryPrizes = pgTable("lottery_prizes", {
+  id: serial("id").primaryKey(),
+  lotteryId: integer("lottery_id").notNull().references(() => lotteries.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  description: text("description").notNull().default(""),
+  icon: text("icon").notNull(),
+  probabilityBps: integer("probability_bps").notNull(),
+  quantity: integer("quantity").notNull().default(1),
+  awardedCount: integer("awarded_count").notNull().default(0),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  index("idx_lottery_prizes_lottery_id").on(table.lotteryId),
+  check("lottery_prizes_probability_check", sql`${table.probabilityBps} BETWEEN 0 AND 10000`),
+  check("lottery_prizes_quantity_check", sql`${table.quantity} BETWEEN 1 AND 100000`),
+  check("lottery_prizes_awarded_count_check", sql`${table.awardedCount} BETWEEN 0 AND ${table.quantity}`),
+]);
+
+export const lotteryDraws = pgTable("lottery_draws", {
+  id: serial("id").primaryKey(),
+  lotteryId: integer("lottery_id").notNull().references(() => lotteries.id, { onDelete: "cascade" }),
+  prizeId: integer("prize_id").notNull().references(() => lotteryPrizes.id, { onDelete: "restrict" }),
+  deviceHash: text("device_hash").notNull(),
+  probabilityRoll: integer("probability_roll").notNull(),
+  drawnBy: text("drawn_by").notNull(),
+  drawnAt: timestamp("drawn_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  uniqueIndex("idx_lottery_draws_unique_winner").on(table.lotteryId, table.deviceHash),
+  index("idx_lottery_draws_lottery_id").on(table.lotteryId),
+  check("lottery_draws_probability_roll_check", sql`${table.probabilityRoll} BETWEEN 0 AND 9999`),
+]);

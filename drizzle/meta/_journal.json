@@ -29,6 +29,13 @@
       "when": 1788854400000,
       "tag": "0004_admin_sessions_and_maintenance",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790035200000,
+      "tag": "0005_lotteries",
+      "breakpoints": true
     }
   ]
 }

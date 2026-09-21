@@ -86,13 +86,13 @@ export async function getClaimStats(eventId: string): Promise<ClaimRuleStat[]> {
     claimedCount: row.claimed_count, maxClaims: row.max_claims, enabled: row.enabled }));
 }
 
-async function hashDeviceId(eventId: string, deviceId: string) {
+export async function hashClaimDeviceId(eventId: string, deviceId: string) {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`${eventId}:${deviceId}`));
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
 export async function claimOnline(eventId: string, claimCode: string, deviceId: string): Promise<OnlineClaimResult> {
-  const deviceHash = await hashDeviceId(eventId, deviceId);
+  const deviceHash = await hashClaimDeviceId(eventId, deviceId);
   const rows = await getSql()`SELECT * FROM claim_achievement(${eventId}, ${claimCode}, ${deviceHash})` as Array<{
     result_status: OnlineClaimResult["status"]; achievement_id: string | null; achievement_name: string | null;
     achievement_description: string | null; achievement_icon: string | null;

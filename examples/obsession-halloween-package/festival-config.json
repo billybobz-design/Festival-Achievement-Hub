@@ -1,0 +1,27 @@
+{
+  "eventId": "obsession-halloween-2026",
+  "name": "许愿之后 · 万圣节鬼屋",
+  "eyebrow": "NCPA · HALLOWEEN 2026",
+  "subtitle": "Bear 向神秘的 One Wish Willow 许愿柳许愿，让 Nikki 爱自己胜过一切。愿望成真后，这份爱却逐渐变成噩梦。跟随三章线索，寻找执念的出口。",
+  "dateLabel": "万圣节特别活动 · 时间待公布",
+  "status": "closed",
+  "categories": [
+    { "id": "unspoken", "name": "未说出口的爱", "description": "第一章 / 在愿望发生之前，收集那些被忽略的线索。", "sortOrder": 0 },
+    { "id": "willow", "name": "许愿柳的代价", "description": "第二章 / 许愿很容易，看清代价却很难。", "sortOrder": 1 },
+    { "id": "escape", "name": "逃离执念", "description": "第三章 / 爱不该是一座没有出口的房间。", "sortOrder": 2 }
+  ],
+  "achievements": [
+    { "id": "entry", "claimCode": "obs26_entry_m7kp92xd", "name": "夜访者", "description": "来到鬼屋入口，找到第一处线索点并扫描二维码，留下你的到访记录。", "icon": "🕯️", "categoryId": "unspoken", "enabled": true, "sortOrder": 0, "claimLimit": 100 },
+    { "id": "letter", "claimCode": "obs26_letter_v4qs83hn", "name": "未寄出的信", "description": "在信件线索点停留，读完那段未说出口的心意，并扫描此处二维码。", "icon": "✉️", "categoryId": "unspoken", "enabled": true, "sortOrder": 1, "claimLimit": 100 },
+    { "id": "reflection", "claimCode": "obs26_reflection_t6wx29jr", "name": "镜中疑影", "description": "找到镜面线索点，留意倒影中的提示，并扫描对应二维码。", "icon": "🪞", "categoryId": "unspoken", "enabled": true, "sortOrder": 2, "claimLimit": 100 },
+    { "id": "threshold", "claimCode": "obs26_threshold_b8fn54zk", "name": "愿望的门槛", "description": "抵达许愿区入口，在作出选择前扫描章节二维码。", "icon": "🗝️", "categoryId": "unspoken", "enabled": true, "sortOrder": 3, "claimLimit": 100 },
+    { "id": "willow-witness", "claimCode": "obs26_willow_c3hm78vp", "name": "柳下见证", "description": "找到 One Wish Willow 许愿柳布景，扫描树旁的线索二维码。", "icon": "🌿", "categoryId": "willow", "enabled": true, "sortOrder": 4, "claimLimit": 100 },
+    { "id": "one-wish", "claimCode": "obs26_wish_k9rd42mt", "name": "仅此一愿", "description": "在许愿线索点完成现场互动，再扫描该点二维码。", "icon": "📜", "categoryId": "willow", "enabled": true, "sortOrder": 5, "claimLimit": 100 },
+    { "id": "red-thread", "claimCode": "obs26_thread_p5yv63bn", "name": "红线缠身", "description": "沿现场允许的路线找到红线线索点，扫描二维码记录这份不安。", "icon": "🧵", "categoryId": "willow", "enabled": true, "sortOrder": 6, "claimLimit": 100 },
+    { "id": "price", "claimCode": "obs26_price_s2jk87wf", "name": "代价显形", "description": "抵达第二章终点，发现愿望背后的代价，并扫描章节二维码。", "icon": "⏳", "categoryId": "willow", "enabled": true, "sortOrder": 7, "claimLimit": 100 },
+    { "id": "footsteps", "claimCode": "obs26_steps_h6np34cx", "name": "回声之后", "description": "在回声线索点辨认方向提示，扫描二维码留下行进记录。", "icon": "👣", "categoryId": "escape", "enabled": true, "sortOrder": 8, "claimLimit": 100 },
+    { "id": "release", "claimCode": "obs26_release_w8bt52qm", "name": "松开红线", "description": "完成现场的选择互动，扫描对应二维码，为执念画下边界。", "icon": "✂️", "categoryId": "escape", "enabled": true, "sortOrder": 9, "claimLimit": 100 },
+    { "id": "exit", "claimCode": "obs26_exit_r4cz79hk", "name": "最后一道门", "description": "沿工作人员指引抵达鬼屋出口，扫描出口二维码。", "icon": "🚪", "categoryId": "escape", "enabled": true, "sortOrder": 10, "claimLimit": 100 },
+    { "id": "dawn", "claimCode": "obs26_dawn_n7gv26ps", "name": "把自己还给黎明", "description": "在终点纪念区完成最后的打卡并扫描二维码，收下这一夜的纪念。", "icon": "🌅", "categoryId": "escape", "enabled": true, "sortOrder": 11, "claimLimit": 100 }
+  ]
+}

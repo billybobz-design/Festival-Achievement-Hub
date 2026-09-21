@@ -25,6 +25,7 @@ import {
   SmilePlus,
   Sparkles,
   Trash2,
+  Trophy,
   UploadCloud,
   UserPlus,
   Users,
@@ -43,8 +44,9 @@ import {
 } from "../lib/demo-store";
 import { createClientId } from "../lib/client-id";
 import { AdminApiError, describeAdminError, readAdminJson } from "../lib/admin-api";
+import { LotteryManager } from "./LotteryManager";
 
-type AdminSection = "administrators" | "overview" | "new-activity" | "activity" | "achievements" | "categories" | "packages";
+type AdminSection = "administrators" | "overview" | "new-activity" | "activity" | "achievements" | "categories" | "lotteries" | "packages";
 
 export type AdminUiSession = {
   user: { id: number; username: string; role: "superadmin" | "admin" };
@@ -750,6 +752,7 @@ export function AdminConsole({ session, onSessionExpired }: { session: AdminUiSe
               <AdminNav active={section === "activity"} onClick={() => setSection("activity")} icon={<CalendarDays size={18} />} label="活动设置" />
               <AdminNav active={section === "achievements"} onClick={() => setSection("achievements")} icon={<Sparkles size={18} />} label="成就管理" count={config.achievements.length} />
               <AdminNav active={section === "categories"} onClick={() => setSection("categories")} icon={<Boxes size={18} />} label="分类管理" count={config.categories.length} />
+              <AdminNav active={section === "lotteries"} onClick={() => setSection("lotteries")} icon={<Trophy size={18} />} label="抽奖管理" />
               <AdminNav active={section === "packages"} onClick={openPackageManager} icon={<FolderArchive size={18} />} label="活动包管理" />
             </>
           ) : null}
@@ -1016,6 +1019,8 @@ export function AdminConsole({ session, onSessionExpired }: { session: AdminUiSe
           </div>
         ) : null}
 
+        {section === "lotteries" ? <LotteryManager config={config} adminFetch={adminFetch} setNotice={setNotice} /> : null}
+
       </section>
 
       {qrPreview ? (
@@ -1096,6 +1101,7 @@ function sectionTitle(section: AdminSection) {
     activity: "活动设置",
     achievements: "成就管理",
     categories: "分类管理",
+    lotteries: "抽奖管理",
     packages: "活动包管理",
   }[section];
 }
