@@ -49,6 +49,7 @@ services:
       GITHUB_UPDATE_WORKFLOW: ${GITHUB_UPDATE_WORKFLOW:-}
       GITHUB_UPDATE_REF: ${GITHUB_UPDATE_REF:-main}
       APP_VERSION: ${APP_VERSION:-development}
+      ADMIN_OPERATION_LOG_PATH: /app/data/admin-operations.jsonl
       # Enable only when a trusted reverse proxy is the sole entry point.
       TRUST_PROXY_HEADERS: "${TRUST_PROXY_HEADERS:-false}"
     ports:
@@ -64,6 +65,8 @@ services:
       start_interval: 2s
     security_opt:
       - no-new-privileges:true
+    volumes:
+      - operation_logs:/app/data
     logging:
       driver: json-file
       options:
@@ -84,3 +87,5 @@ networks:
 volumes:
   postgres_data:
     name: festival_hub_postgres_data
+  operation_logs:
+    name: festival_hub_operation_logs

@@ -235,6 +235,19 @@ export async function requireAdminSession(request: Request, options: { csrf?: bo
   return session;
 }
 
+export async function requireCurrentAdminPassword(principal: AdminPrincipal, password: string) {
+  if (!validateAdminPassword(password)) {
+    throw new HttpError(403, "current administrator password is incorrect", "ADMIN_PASSWORD_CONFIRMATION_FAILED");
+  }
+  const rows = await getSql()<Array<{ password_hash: string; enabled: boolean }>>`
+    SELECT password_hash, enabled FROM admins WHERE id = ${principal.id} LIMIT 1
+  `;
+  const admin = rows[0];
+  if (!admin?.enabled || !await verifyAdminPassword(password, admin.password_hash)) {
+    throw new HttpError(403, "current administrator password is incorrect", "ADMIN_PASSWORD_CONFIRMATION_FAILED");
+  }
+}
+
 export async function rotateAdminCsrf(session: AdminSession) {
   const csrfToken = randomBytes(24).toString("base64url");
   await getSql()`UPDATE admin_sessions SET csrf_token_hash = ${sha256(csrfToken)} WHERE token_hash = ${session.tokenHash}`;

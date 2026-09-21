@@ -6,6 +6,7 @@ export type ClaimRuleStat = { achievementId: string; claimCode: string; claimedC
 export type FestivalSummary = { eventId: string; name: string; eyebrow: string; subtitle: string; dateLabel: string; status: FestivalConfig["status"]; updatedAt: string };
 export type NewFestivalInput = { eventId: string; name: string; eyebrow: string; subtitle: string; dateLabel: string };
 export class FestivalAlreadyExistsError extends Error {}
+export class FestivalNotFoundError extends Error {}
 export type OnlineClaimResult = {
   status: "claimed" | "already" | "event_closed" | "achievement_disabled" | "limit_reached" | "not_found";
   achievement?: { id: string; name: string; description: string; icon: string };
@@ -80,6 +81,14 @@ export async function createFestival(input: NewFestivalInput): Promise<FestivalC
     VALUES (${eventId}, 'closed', ${JSON.stringify(config)}) ON CONFLICT (event_id) DO NOTHING RETURNING event_id`;
   if (rows.length === 0) throw new FestivalAlreadyExistsError("这个活动编号已经存在");
   return config;
+}
+
+export async function deleteFestival(eventId: string): Promise<FestivalConfig> {
+  const rows = await getSql()<Array<{ config_json: string }>>`
+    DELETE FROM claim_events WHERE event_id = ${eventId} RETURNING config_json
+  `;
+  if (!rows[0]) throw new FestivalNotFoundError("活动不存在或已经被删除");
+  return normalizeConfig(JSON.parse(rows[0].config_json) as FestivalConfig);
 }
 
 export async function getClaimStats(eventId: string): Promise<ClaimRuleStat[]> {

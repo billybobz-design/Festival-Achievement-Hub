@@ -1545,6 +1545,71 @@ a {
   font-size: 11px;
 }
 
+.activity-danger-zone {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  border-color: #ebc9c3;
+  padding: 20px 22px;
+  background: #fff9f7;
+}
+
+.activity-danger-zone .panel-kicker { color: #a54e43; }
+.activity-danger-zone h2 { margin: 3px 0 6px; color: #542f2b; font-family: var(--font-display); font-size: 20px; }
+.activity-danger-zone p { max-width: 720px; margin: 0; color: #98746f; font-size: 9px; line-height: 1.6; }
+.activity-danger-zone > button,
+.delete-activity-confirm {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid #a84135;
+  border-radius: 9px;
+  padding: 10px 14px;
+  color: #fff;
+  background: #a84135;
+  font-size: 9px;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.admin-delete-activity-dialog {
+  width: min(480px, 100%);
+  position: relative;
+  border: 1px solid #e6c8c2;
+  border-radius: 18px;
+  padding: 28px;
+  color: #34292a;
+  background: #fffaf8;
+  box-shadow: 0 24px 80px rgba(15, 12, 18, 0.32);
+}
+
+.delete-activity-warning-icon {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 14px;
+  border-radius: 13px;
+  color: #a84135;
+  background: #f9ddd8;
+}
+
+.admin-delete-activity-dialog .panel-kicker { color: #a84135; }
+.admin-delete-activity-dialog h2 { margin: 4px 0 8px; font-family: var(--font-display); font-size: 25px; }
+.admin-delete-activity-dialog > p:not(.panel-kicker) { margin: 0; color: #8e7672; font-size: 10px; line-height: 1.65; }
+.admin-delete-activity-dialog code { border-radius: 5px; padding: 2px 5px; color: #7d3e36; background: #f7e5e1; font-size: 9px; }
+.delete-activity-consequences { display: grid; gap: 4px; margin: 16px 0; border: 1px solid #edcdc7; border-radius: 10px; padding: 12px; background: #fff2ef; }
+.delete-activity-consequences strong { color: #913f35; font-size: 10px; }
+.delete-activity-consequences span { color: #9b7772; font-size: 8px; line-height: 1.5; }
+.admin-delete-activity-dialog > label { display: block; margin-bottom: 6px; color: #665958; font-size: 9px; font-weight: 700; }
+.admin-delete-activity-dialog > input { width: 100%; border: 1px solid #d9c9c5; border-radius: 9px; padding: 10px 11px; outline: none; color: #302829; background: #fff; }
+.admin-delete-activity-dialog > input:focus { border-color: #a84135; box-shadow: 0 0 0 3px rgba(168, 65, 53, 0.1); }
+.delete-activity-confirm:disabled,
+.activity-danger-zone > button:disabled { cursor: wait; opacity: 0.55; }
+
 .event-control-actions { display: flex; align-items: center; gap: 9px; }
 .event-control-actions .text-admin-button { color: #e7dfd2; border-color: rgba(255,255,255,.18); background: rgba(255,255,255,.06); }
 

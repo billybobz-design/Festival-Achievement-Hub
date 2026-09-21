@@ -83,6 +83,7 @@ export function describeAdminError(error: unknown, action = "操作") {
     ADMIN_NOT_CONFIGURED: "初始超级管理员尚未配置",
     ADMIN_NOT_FOUND: "管理员账号不存在",
     ADMIN_PASSWORD_INVALID: "密码不能为空",
+    ADMIN_PASSWORD_CONFIRMATION_FAILED: "当前管理员密码不正确",
     ADMIN_USERNAME_INVALID: "管理员用户名格式不正确",
     AUTH_REQUIRED: "管理员登录已失效，请刷新页面并重新登录",
     BAD_REQUEST: "提交内容格式不正确",

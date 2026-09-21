@@ -145,6 +145,9 @@ export function AdminConsole({ session, onSessionExpired }: { session: AdminUiSe
   const [festivals, setFestivals] = useState<FestivalSummary[]>([]);
   const [festivalDraft, setFestivalDraft] = useState<NewFestivalDraft>(emptyFestivalDraft);
   const [creatingFestival, setCreatingFestival] = useState(false);
+  const [deleteActivityOpen, setDeleteActivityOpen] = useState(false);
+  const [deleteActivityPassword, setDeleteActivityPassword] = useState("");
+  const [deletingFestival, setDeletingFestival] = useState(false);
   const [newActivityPackage, setNewActivityPackage] = useState<File | null>(null);
   const [categoryName, setCategoryName] = useState("");
   const [draft, setDraft] = useState(emptyAchievement);
@@ -322,6 +325,35 @@ export function AdminConsole({ session, onSessionExpired }: { session: AdminUiSe
       setNotice(describeAdminError(error, "创建活动"));
     } finally {
       setCreatingFestival(false);
+    }
+  }
+
+  async function deleteCurrentActivity(event: FormEvent) {
+    event.preventDefault();
+    if (!selectedEventId || deletingFestival || !deleteActivityPassword) return;
+    setDeletingFestival(true);
+    try {
+      const response = await adminFetch("/api/admin/festivals", {
+        method: "DELETE",
+        cache: "no-store",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ eventId: selectedEventId, password: deleteActivityPassword }),
+      });
+      await readAdminJson<{ removed: true; eventId: string }>(response);
+      const removedName = config.name;
+      setDeleteActivityOpen(false);
+      setDeleteActivityPassword("");
+      setSelectedEventId(null);
+      setConfig(defaultFestivalConfig);
+      setSection("overview");
+      setFestivals((current) => current.filter((festival) => festival.eventId !== selectedEventId));
+      setNotice(`活动“${removedName}”已永久删除`);
+      await loadFestivalList();
+    } catch (error) {
+      setDeleteActivityPassword("");
+      setNotice(describeAdminError(error, "删除活动"));
+    } finally {
+      setDeletingFestival(false);
     }
   }
 
@@ -897,6 +929,10 @@ export function AdminConsole({ session, onSessionExpired }: { session: AdminUiSe
               <Metric label="成就分类" value={String(config.categories.length)} detail="仅用于当前活动" />
               <Metric label="在线领取" value={String(totalOnlineClaims)} detail="已通过服务器校验" />
             </div>
+            <section className="admin-panel activity-danger-zone">
+              <div><span className="panel-kicker">DANGER ZONE</span><h2>删除当前活动</h2><p>会同时删除成就、领取记录、抽奖与中奖记录以及已导入的活动包。该操作无法从管理台恢复。</p></div>
+              <button type="button" onClick={() => { setDeleteActivityPassword(""); setDeleteActivityOpen(true); }}><Trash2 size={15} />删除活动</button>
+            </section>
           </div>
         ) : null}
 
@@ -1049,6 +1085,25 @@ export function AdminConsole({ session, onSessionExpired }: { session: AdminUiSe
               <button className="primary-admin-button" onClick={() => downloadQr(qrPreview)}><Download size={15} />下载 PNG</button>
             </div>
           </div>
+        </div>
+      ) : null}
+
+      {deleteActivityOpen && selectedEventId ? (
+        <div className="admin-qr-overlay" role="dialog" aria-modal="true" aria-label="确认删除活动">
+          <form className="admin-delete-activity-dialog" onSubmit={deleteCurrentActivity}>
+            <button className="admin-qr-close" type="button" disabled={deletingFestival} onClick={() => { setDeleteActivityOpen(false); setDeleteActivityPassword(""); }} aria-label="关闭删除活动确认"><X size={19} /></button>
+            <span className="delete-activity-warning-icon"><AlertTriangle size={22} /></span>
+            <p className="panel-kicker">PERMANENT DELETION</p>
+            <h2>永久删除“{config.name}”</h2>
+            <p>活动编号 <code>{config.eventId}</code> 以及该活动的成就、领取、抽奖、中奖和活动包数据都会被删除。</p>
+            <div className="delete-activity-consequences"><strong>此操作不可撤销</strong><span>服务器本地审计文档会记录操作者、活动和时间，但不会记录密码。</span></div>
+            <label htmlFor="delete-activity-password">输入当前账号 {session.user.username} 的密码确认</label>
+            <input id="delete-activity-password" required type="password" autoComplete="current-password" maxLength={128} value={deleteActivityPassword} onChange={(event) => setDeleteActivityPassword(event.target.value)} />
+            <div className="admin-qr-actions">
+              <button className="text-admin-button" type="button" disabled={deletingFestival} onClick={() => { setDeleteActivityOpen(false); setDeleteActivityPassword(""); }}>取消</button>
+              <button className="delete-activity-confirm" type="submit" disabled={deletingFestival || !deleteActivityPassword}>{deletingFestival ? "正在删除" : "确认永久删除"}</button>
+            </div>
+          </form>
         </div>
       ) : null}
 
