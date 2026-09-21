@@ -880,9 +880,17 @@ export function AdminConsole({ session, onSessionExpired }: { session: AdminUiSe
             <div className="prototype-banner"><Sparkles size={18} /><div><strong>正在管理：{config.name}</strong><p>下面的分类、成就和领取数量都只属于该活动；管理请求由服务器认证并执行运行时校验。</p></div></div>
             <div className="admin-panel event-control">
               <div><span className="panel-kicker">CURRENT EVENT</span><h2>{config.name}</h2><p>{config.subtitle}</p></div>
-              <button className={config.status === "active" ? "danger-button" : "primary-admin-button"} onClick={toggleEventStatus}>
-                {config.status === "active" ? "关闭活动" : "开启活动"}
-              </button>
+              <div className="event-control-actions">
+                <button className="text-admin-button" type="button" onClick={() => persist(
+                  { ...config, webScannerEnabled: !config.webScannerEnabled },
+                  config.webScannerEnabled ? "网页摄像头扫码已关闭" : "网页摄像头扫码已开启",
+                )}>
+                  <QrCode size={15} />网页扫码：{config.webScannerEnabled ? "开启" : "关闭"}
+                </button>
+                <button className={config.status === "active" ? "danger-button" : "primary-admin-button"} onClick={toggleEventStatus}>
+                  {config.status === "active" ? "关闭活动" : "开启活动"}
+                </button>
+              </div>
             </div>
             <div className="metric-grid activity-metrics">
               <Metric label="成就总数" value={String(config.achievements.length)} detail={`${activeAchievements} 个正在启用`} />

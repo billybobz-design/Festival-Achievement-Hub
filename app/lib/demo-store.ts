@@ -34,6 +34,7 @@ export type FestivalConfig = {
   subtitle: string;
   dateLabel: string;
   status: FestivalStatus;
+  webScannerEnabled: boolean;
   categories: FestivalCategory[];
   achievements: FestivalAchievement[];
 };
@@ -55,6 +56,7 @@ export const defaultFestivalConfig: FestivalConfig = {
   subtitle: "用于测试二维码识别和本地成就解锁。",
   dateLabel: "测试模式",
   status: "closed",
+  webScannerEnabled: false,
   categories: [
     {
       id: "demo-achievements",

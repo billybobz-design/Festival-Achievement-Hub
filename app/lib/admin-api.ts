@@ -100,6 +100,7 @@ export function describeAdminError(error: unknown, action = "操作") {
     LOTTERY_NOT_FOUND: "抽奖项目不存在或已被删除",
     LOTTERY_PRIZE_NOT_FOUND: "奖品不存在或已被删除",
     LOTTERY_PRIZE_HAS_WINNERS: "这个奖品已有中奖记录，不能删除；可以把剩余库存改为已发数量并将概率设为 0%",
+    LOTTERY_PRIZES_CHANGED: "奖品列表刚刚发生变化，请刷新抽奖项目后重新设置概率",
     LOTTERY_PRIZES_EMPTY: "请先添加至少一个奖品",
     LOTTERY_PROBABILITY_EXCEEDED: "所有奖品中奖概率合计不能超过 100%",
     LOTTERY_QUANTITY_BELOW_AWARDED: "奖品数量不能小于已经发出的数量",

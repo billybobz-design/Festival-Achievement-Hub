@@ -36,6 +36,13 @@
       "when": 1790035200000,
       "tag": "0005_lotteries",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790121600000,
+      "tag": "0006_participant_lottery",
+      "breakpoints": true
     }
   ]
 }

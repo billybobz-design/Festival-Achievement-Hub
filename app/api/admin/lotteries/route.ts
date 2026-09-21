@@ -1,7 +1,7 @@
 import { z } from "zod";
 import {
-  createLottery, createLotteryPrize, deleteLottery, deleteLotteryPrize, drawLottery,
-  getLotteryDetail, listLotteries, setLotteryRequirements, updateLottery, updateLotteryPrize,
+  createLottery, createLotteryPrize, deleteLottery, deleteLotteryPrize,
+  getLotteryDetail, listLotteries, setLotteryProbabilities, setLotteryRequirements, updateLottery, updateLotteryPrize,
 } from "../../../../db/lotteries";
 import { logAdminAudit, requireAdminSession } from "../../../lib/admin-auth";
 import { apiError, HttpError, noStoreJson, readJson, requireSameOrigin } from "../../../lib/server-http";
@@ -29,7 +29,9 @@ const actionSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("createPrize"), lotteryId, ...prizeFields }).strict(),
   z.object({ action: z.literal("updatePrize"), prizeId: z.number().int().positive(), ...prizeFields }).strict(),
   z.object({ action: z.literal("deletePrize"), prizeId: z.number().int().positive() }).strict(),
-  z.object({ action: z.literal("draw"), lotteryId }).strict(),
+  z.object({ action: z.literal("setProbabilities"), lotteryId, entries: z.array(z.object({
+    prizeId: z.number().int().positive(), probabilityBps: z.number().int().min(0).max(10_000),
+  }).strict()).max(500) }).strict(),
 ]);
 
 export async function GET(request: Request) {
@@ -91,9 +93,9 @@ export async function POST(request: Request) {
       await logAdminAudit(actor, "lottery.prize_delete", String(input.prizeId), {});
       return noStoreJson({ lottery });
     }
-    const result = await drawLottery(input.lotteryId, actor);
-    await logAdminAudit(actor, "lottery.draw", String(input.lotteryId), { status: result.status, roll: result.roll });
-    return noStoreJson({ result, lottery: await getLotteryDetail(input.lotteryId) });
+    const lottery = await setLotteryProbabilities(input.lotteryId, input.entries);
+    await logAdminAudit(actor, "lottery.probabilities", String(input.lotteryId), { entries: input.entries });
+    return noStoreJson({ lottery });
   } catch (error) {
     return apiError(error, "lottery operation failed");
   }

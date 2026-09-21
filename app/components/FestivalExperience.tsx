@@ -5,6 +5,7 @@ import {
   ArrowRight,
   Camera,
   Check,
+  Dices,
   Gift,
   LockKeyhole,
   QrCode,
@@ -60,6 +61,19 @@ type LotteryWin = {
   drawnAt: string;
 };
 
+type ParticipantLottery = {
+  id: number;
+  name: string;
+  description: string;
+  eligible: boolean;
+  prizes: Array<{ id: number; name: string; description: string; icon: string; remaining: number }>;
+};
+
+type ParticipantDrawResult = {
+  status: "winner" | "no_prize" | "already" | "not_eligible" | "sold_out";
+  draw?: { prizeName: string; prizeDescription: string; prizeIcon: string; participantCode: string; drawnAt: string };
+};
+
 const inactiveFestivalConfig: FestivalConfig = {
   eventId: "",
   name: "",
@@ -67,6 +81,7 @@ const inactiveFestivalConfig: FestivalConfig = {
   subtitle: "",
   dateLabel: "",
   status: "closed",
+  webScannerEnabled: false,
   categories: [],
   achievements: [],
 };
@@ -85,6 +100,12 @@ export function FestivalExperience() {
   const [lotteryWins, setLotteryWins] = useState<LotteryWin[]>([]);
   const [prizesOpen, setPrizesOpen] = useState(false);
   const [prizesLoading, setPrizesLoading] = useState(false);
+  const [lotteries, setLotteries] = useState<ParticipantLottery[]>([]);
+  const [lotteriesOpen, setLotteriesOpen] = useState(false);
+  const [selectedLotteryId, setSelectedLotteryId] = useState<number | null>(null);
+  const [lotteriesLoading, setLotteriesLoading] = useState(false);
+  const [lotteryDrawBusy, setLotteryDrawBusy] = useState(false);
+  const [lotteryDrawResult, setLotteryDrawResult] = useState<ParticipantDrawResult | null>(null);
   const processedUrl = useRef(false);
   const packageFrame = useRef<HTMLIFrameElement>(null);
   const scannerVideo = useRef<HTMLVideoElement>(null);
@@ -158,23 +179,33 @@ export function FestivalExperience() {
       const resetTimer = window.setTimeout(() => {
         setLotteryWins([]);
         setPrizesOpen(false);
+        setLotteries([]);
+        setLotteriesOpen(false);
+        setSelectedLotteryId(null);
+        setLotteryDrawResult(null);
       }, 0);
       return () => window.clearTimeout(resetTimer);
     }
     let cancelled = false;
-    async function loadWins(showLoading = false) {
-      if (showLoading) setPrizesLoading(true);
+    async function loadParticipantData(showLoading = false) {
+      if (showLoading) { setPrizesLoading(true); setLotteriesLoading(true); }
       try {
-        const response = await fetch(`/api/lottery/wins?eventId=${encodeURIComponent(config.eventId)}`, { cache: "no-store" });
-        if (!response.ok) return;
-        const payload = await response.json() as { wins: LotteryWin[] };
-        if (!cancelled) setLotteryWins(payload.wins);
+        const lotteryResponse = await fetch(`/api/lottery?eventId=${encodeURIComponent(config.eventId)}`, { cache: "no-store" });
+        if (lotteryResponse.ok) {
+          const payload = await lotteryResponse.json() as { lotteries: ParticipantLottery[] };
+          if (!cancelled) setLotteries(payload.lotteries);
+        }
+        const winsResponse = await fetch(`/api/lottery/wins?eventId=${encodeURIComponent(config.eventId)}`, { cache: "no-store" });
+        if (winsResponse.ok) {
+          const payload = await winsResponse.json() as { wins: LotteryWin[] };
+          if (!cancelled) setLotteryWins(payload.wins);
+        }
       } finally {
-        if (!cancelled && showLoading) setPrizesLoading(false);
+        if (!cancelled && showLoading) { setPrizesLoading(false); setLotteriesLoading(false); }
       }
     }
-    void loadWins();
-    const timer = window.setInterval(() => void loadWins(), 8_000);
+    void loadParticipantData();
+    const timer = window.setInterval(() => void loadParticipantData(), 8_000);
     return () => { cancelled = true; window.clearInterval(timer); };
   }, [config.eventId, config.status]);
 
@@ -197,6 +228,33 @@ export function FestivalExperience() {
   const progress = activeAchievements.length
     ? Math.round((unlockedCount / activeAchievements.length) * 100)
     : 0;
+  const selectedLottery = lotteries.find((lottery) => lottery.id === selectedLotteryId) ?? null;
+
+  async function participateInLottery(lottery: ParticipantLottery) {
+    if (lotteryDrawBusy || !lottery.eligible) return;
+    setLotteryDrawBusy(true);
+    try {
+      const response = await fetch("/api/lottery", {
+        method: "POST",
+        cache: "no-store",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ eventId: config.eventId, lotteryId: lottery.id }),
+      });
+      const result = await response.json() as ParticipantDrawResult & { error?: string };
+      if (!response.ok) throw new Error(result.error || "抽奖暂时无法进行");
+      setLotteryDrawResult(result);
+      const [lotteryResponse, winsResponse] = await Promise.all([
+        fetch(`/api/lottery?eventId=${encodeURIComponent(config.eventId)}`, { cache: "no-store" }),
+        fetch(`/api/lottery/wins?eventId=${encodeURIComponent(config.eventId)}`, { cache: "no-store" }),
+      ]);
+      if (lotteryResponse.ok) setLotteries((await lotteryResponse.json() as { lotteries: ParticipantLottery[] }).lotteries);
+      if (winsResponse.ok) setLotteryWins((await winsResponse.json() as { wins: LotteryWin[] }).wins);
+    } catch (error) {
+      setClaimResult({ kind: "error", title: "抽奖暂不可用", message: error instanceof Error ? error.message : "请稍后重试。" });
+    } finally {
+      setLotteryDrawBusy(false);
+    }
+  }
   const claimAchievement = useCallback(async (eventId: string, claimCode: string) => {
     try {
       const response = await fetch("/api/claims", {
@@ -355,6 +413,10 @@ export function FestivalExperience() {
       }
 
       if (message.method === "openScanner") {
+        if (!config.webScannerEnabled) {
+          respond(message.requestId, false, undefined, "当前活动未开放网页摄像头扫码");
+          return;
+        }
         openScanner();
         respond(message.requestId, true, true);
         return;
@@ -505,11 +567,13 @@ export function FestivalExperience() {
               </section>
             ) : null}
 
-            <button className="scan-entry-card" onClick={openScanner}>
-              <span className="scan-entry-icon"><QrCode size={23} /></span>
-              <span className="scan-entry-copy"><strong>在网页中打开摄像头</strong><span>需要 HTTPS 和摄像头权限</span></span>
-              <ArrowRight size={18} />
-            </button>
+            {config.webScannerEnabled ? (
+              <button className="scan-entry-card" onClick={openScanner}>
+                <span className="scan-entry-icon"><QrCode size={23} /></span>
+                <span className="scan-entry-copy"><strong>在网页中打开摄像头</strong><span>需要 HTTPS 和摄像头权限</span></span>
+                <ArrowRight size={18} />
+              </button>
+            ) : null}
             <div className="direct-scan-hint">
               <Camera size={17} />
               <span><strong>也可以使用手机系统相机</strong>扫描墙上的二维码，打开链接后会自动激活成就，无需网页摄像头权限。</span>
@@ -581,9 +645,36 @@ export function FestivalExperience() {
         )}
 
         {!maintenance.active && config.status === "active" ? (
-          <button className="my-prizes-button" type="button" onClick={() => { setPrizesOpen(true); setPrizesLoading(true); fetch(`/api/lottery/wins?eventId=${encodeURIComponent(config.eventId)}`, { cache: "no-store" }).then((response) => response.ok ? response.json() : null).then((payload: { wins: LotteryWin[] } | null) => { if (payload) setLotteryWins(payload.wins); }).finally(() => setPrizesLoading(false)); }}>
-            <Gift size={17} /><span>我的奖品</span>{lotteryWins.length ? <strong>{lotteryWins.length}</strong> : null}
-          </button>
+          <div className="festival-action-bar">
+            {lotteries.length ? <button className="lottery-entry-button" type="button" onClick={() => { setLotteriesOpen(true); setLotteryDrawResult(null); setSelectedLotteryId(null); }}>
+              <Dices size={17} /><span>参加抽奖</span><strong>{lotteries.length}</strong>
+            </button> : null}
+            <button className="my-prizes-button" type="button" onClick={() => { setPrizesOpen(true); setPrizesLoading(true); fetch(`/api/lottery/wins?eventId=${encodeURIComponent(config.eventId)}`, { cache: "no-store" }).then((response) => response.ok ? response.json() : null).then((payload: { wins: LotteryWin[] } | null) => { if (payload) setLotteryWins(payload.wins); }).finally(() => setPrizesLoading(false)); }}>
+              <Gift size={17} /><span>我的奖品</span>{lotteryWins.length ? <strong>{lotteryWins.length}</strong> : null}
+            </button>
+          </div>
+        ) : null}
+
+        {lotteriesOpen && config.status === "active" ? (
+          <div className="lottery-participant-overlay" role="dialog" aria-modal="true" aria-label="参加抽奖">
+            <header><div><span>LUCKY DRAW</span><h2>{selectedLottery ? selectedLottery.name : "参加抽奖"}</h2></div><button type="button" onClick={() => setLotteriesOpen(false)} aria-label="关闭抽奖"><X size={20} /></button></header>
+            {lotteryDrawResult ? <ParticipantLotteryResult result={lotteryDrawResult} onClose={() => setLotteriesOpen(false)} /> : selectedLottery ? (
+              <div className="participant-lottery-detail">
+                <button className="participant-lottery-back" type="button" onClick={() => setSelectedLotteryId(null)}>← 返回抽奖列表</button>
+                {selectedLottery.description ? <p>{selectedLottery.description}</p> : null}
+                <div className="participant-prize-list">
+                  {selectedLottery.prizes.map((prize) => <article key={prize.id}><span><AchievementIconGraphic icon={prize.icon} alt={prize.name} /></span><div><strong>{prize.name}</strong>{prize.description ? <p>{prize.description}</p> : null}<small>剩余 {prize.remaining} 份</small></div></article>)}
+                </div>
+                <button className="participant-draw-button" type="button" disabled={lotteryDrawBusy || !selectedLottery.eligible} onClick={() => void participateInLottery(selectedLottery)}>
+                  <Dices size={18} />{lotteryDrawBusy ? "正在抽奖" : selectedLottery.eligible ? "立即抽奖" : "集齐所需成就后可参加"}
+                </button>
+              </div>
+            ) : lotteriesLoading ? <div className="prize-wallet-empty"><span className="spinner" /><p>正在读取抽奖项目</p></div> : (
+              <div className="participant-lottery-list">
+                {lotteries.map((lottery) => <button type="button" key={lottery.id} onClick={() => setSelectedLotteryId(lottery.id)}><Dices size={22} /><span><strong>{lottery.name}</strong><small>{lottery.eligible ? "可以参加" : "尚未集齐参与成就"} · 查看 {lottery.prizes.length} 种奖品</small></span><ArrowRight size={17} /></button>)}
+              </div>
+            )}
+          </div>
         ) : null}
 
         {prizesOpen && config.status === "active" ? (
@@ -601,7 +692,7 @@ export function FestivalExperience() {
                   <small>中奖时间 {new Date(win.drawnAt).toLocaleString("zh-CN")}</small>
                 </article>)}
               </div>
-            ) : <div className="prize-wallet-empty"><Gift size={34} /><h3>暂时没有中奖记录</h3><p>工作人员抽取后，本页面会自动更新。</p></div>}
+            ) : <div className="prize-wallet-empty"><Gift size={34} /><h3>暂时没有中奖记录</h3><p>参加抽奖后，中奖结果会保存在这里。</p></div>}
             <p className="prize-wallet-footnote">中奖记录与当前浏览器绑定。请勿清除网站数据，并使用领取成就时的同一浏览器出示。</p>
           </div>
         ) : null}
@@ -634,7 +725,7 @@ export function FestivalExperience() {
           </div>
         ) : null}
 
-        {scannerOpen && config.status === "active" ? (
+        {scannerOpen && config.status === "active" && config.webScannerEnabled ? (
           <div className="scanner-page" role="dialog" aria-modal="true" aria-label="二维码扫描器">
             <header className="scanner-header">
               <div><h2>扫描二维码</h2></div>
@@ -684,4 +775,16 @@ function MaintenanceFestival({ message }: { message: string }) {
       <small>页面会在更新完成后自动恢复</small>
     </div>
   );
+}
+
+function ParticipantLotteryResult({ result, onClose }: { result: ParticipantDrawResult; onClose: () => void }) {
+  if (result.status === "winner" && result.draw) return <div className="participant-lottery-result is-winner"><span><AchievementIconGraphic icon={result.draw.prizeIcon} alt={result.draw.prizeName} /></span><small>恭喜中奖</small><h3>{result.draw.prizeName}</h3>{result.draw.prizeDescription ? <p>{result.draw.prizeDescription}</p> : null}<div><span>中奖编号</span><strong>{result.draw.participantCode}</strong></div><button type="button" onClick={onClose}>完成</button></div>;
+  const messages = {
+    no_prize: ["本次未中奖", "本次机会没有抽中奖品，抽奖入口已从本机移除。"],
+    already: ["已经参加过", "每个抽奖项目只能参加一次，请前往“我的奖品”查看结果。"],
+    not_eligible: ["尚未满足条件", "请先集齐这个抽奖要求的全部成就。"],
+    sold_out: ["奖品已经抽完", "这个抽奖项目已结束，入口会自动消失。"],
+  } as const;
+  const message = messages[result.status === "winner" ? "already" : result.status];
+  return <div className="participant-lottery-result"><Dices size={38} /><h3>{message[0]}</h3><p>{message[1]}</p><button type="button" onClick={onClose}>返回活动</button></div>;
 }

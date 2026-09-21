@@ -34,6 +34,7 @@ export const festivalConfigSchema = z.object({
   subtitle: z.string().trim().min(1).max(240),
   dateLabel: shortText,
   status: z.enum(["active", "closed"]),
+  webScannerEnabled: z.boolean().default(false),
   categories: z.array(festivalCategorySchema).max(100),
   achievements: z.array(festivalAchievementSchema).max(500),
 }).strict().superRefine((config, context) => {

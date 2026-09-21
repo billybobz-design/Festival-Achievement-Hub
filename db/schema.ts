@@ -154,7 +154,7 @@ export const lotteryPrizes = pgTable("lottery_prizes", {
 export const lotteryDraws = pgTable("lottery_draws", {
   id: serial("id").primaryKey(),
   lotteryId: integer("lottery_id").notNull().references(() => lotteries.id, { onDelete: "cascade" }),
-  prizeId: integer("prize_id").notNull().references(() => lotteryPrizes.id, { onDelete: "restrict" }),
+  prizeId: integer("prize_id").references(() => lotteryPrizes.id, { onDelete: "restrict" }),
   deviceHash: text("device_hash").notNull(),
   probabilityRoll: integer("probability_roll").notNull(),
   drawnBy: text("drawn_by").notNull(),

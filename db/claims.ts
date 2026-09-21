@@ -72,7 +72,10 @@ export async function createFestival(input: NewFestivalInput): Promise<FestivalC
   const parsed = newFestivalSchema.parse(input);
   const eventId = parsed.eventId.toLowerCase();
   const { name, eyebrow, subtitle, dateLabel } = parsed;
-  const config: FestivalConfig = { eventId, name, eyebrow, subtitle, dateLabel, status: "closed", categories: [], achievements: [] };
+  const config: FestivalConfig = {
+    eventId, name, eyebrow, subtitle, dateLabel, status: "closed", webScannerEnabled: false,
+    categories: [], achievements: [],
+  };
   const rows = await getSql()`INSERT INTO claim_events (event_id, status, config_json)
     VALUES (${eventId}, 'closed', ${JSON.stringify(config)}) ON CONFLICT (event_id) DO NOTHING RETURNING event_id`;
   if (rows.length === 0) throw new FestivalAlreadyExistsError("这个活动编号已经存在");

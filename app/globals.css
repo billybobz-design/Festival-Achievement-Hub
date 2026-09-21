@@ -1545,6 +1545,9 @@ a {
   font-size: 11px;
 }
 
+.event-control-actions { display: flex; align-items: center; gap: 9px; }
+.event-control-actions .text-admin-button { color: #e7dfd2; border-color: rgba(255,255,255,.18); background: rgba(255,255,255,.06); }
+
 .primary-admin-button,
 .danger-button,
 .text-admin-button {
@@ -2780,11 +2783,18 @@ a {
   padding-top: 17px;
 }
 
-.my-prizes-button {
+.festival-action-bar {
   position: fixed;
-  right: max(18px, calc((100vw - 640px) / 2 + 18px));
+  left: max(18px, calc((100vw - 640px) / 2 + 18px));
   bottom: 20px;
   z-index: 9;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.my-prizes-button,
+.lottery-entry-button {
   display: inline-flex;
   align-items: center;
   gap: 7px;
@@ -2800,7 +2810,9 @@ a {
   cursor: pointer;
 }
 
-.my-prizes-button strong { min-width: 20px; height: 20px; display: grid; place-items: center; border-radius: 999px; color: #2a2011; background: var(--amber); font-size: 9px; }
+.lottery-entry-button { color: #2a2011; border-color: rgba(255, 211, 119, 0.64); background: rgba(241, 184, 74, 0.96); }
+.my-prizes-button strong, .lottery-entry-button strong { min-width: 20px; height: 20px; display: grid; place-items: center; border-radius: 999px; color: #2a2011; background: var(--amber); font-size: 9px; }
+.lottery-entry-button strong { color: #fff8e7; background: #2a2011; }
 .prize-wallet-overlay { position: fixed; inset: 0; z-index: 18; overflow-y: auto; padding: 26px max(18px, calc((100vw - 600px) / 2)); color: #fff8df; background: rgba(11, 10, 15, 0.98); }
 .prize-wallet-overlay > header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
 .prize-wallet-overlay > header span, .prize-wallet-lottery { color: var(--amber); font-size: 9px; font-weight: 800; letter-spacing: 0.12em; }
@@ -2827,6 +2839,39 @@ a {
 .prize-wallet-empty p, .prize-wallet-footnote { color: #77717d; font-size: 9px; line-height: 1.6; }
 .prize-wallet-footnote { margin: 18px 3px 60px; text-align: center; }
 
+.lottery-participant-overlay { position: fixed; inset: 0; z-index: 19; overflow-y: auto; padding: 26px max(18px, calc((100vw - 600px) / 2)); color: #fff8df; background: rgba(11, 10, 15, 0.985); }
+.lottery-participant-overlay > header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.lottery-participant-overlay > header span { color: var(--amber); font-size: 9px; font-weight: 800; letter-spacing: .12em; }
+.lottery-participant-overlay > header h2 { margin: 4px 0 0; font-family: var(--font-display); font-size: 28px; }
+.lottery-participant-overlay > header button { width: 38px; height: 38px; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.15); border-radius: 50%; color: #fff8df; background: #1b1920; cursor: pointer; }
+.participant-lottery-list { display: grid; gap: 10px; }
+.participant-lottery-list > button { width: 100%; display: grid; grid-template-columns: 44px 1fr auto; align-items: center; gap: 12px; border: 1px solid rgba(241,184,74,.2); border-radius: 15px; padding: 15px; color: #fff8df; background: linear-gradient(145deg, #211d21, #16151b); text-align: left; cursor: pointer; }
+.participant-lottery-list > button > svg:first-child { width: 42px; height: 42px; border-radius: 12px; padding: 10px; color: #2a2011; background: var(--amber); }
+.participant-lottery-list strong, .participant-lottery-list small { display: block; }
+.participant-lottery-list strong { font-size: 12px; }
+.participant-lottery-list small { margin-top: 5px; color: #97909d; font-size: 8px; }
+.participant-lottery-detail > p { margin: 0 0 15px; color: #aaa2ae; font-size: 10px; line-height: 1.7; }
+.participant-lottery-back { margin-bottom: 16px; border: 0; padding: 0; color: var(--amber-soft); background: transparent; font-size: 10px; cursor: pointer; }
+.participant-prize-list { display: grid; gap: 9px; }
+.participant-prize-list article { display: grid; grid-template-columns: 52px 1fr; align-items: center; gap: 12px; border: 1px solid rgba(255,255,255,.1); border-radius: 14px; padding: 12px; background: #1b1920; }
+.participant-prize-list article > span { width: 50px; height: 50px; display: grid; place-items: center; overflow: hidden; border-radius: 12px; color: var(--amber-soft); background: rgba(241,184,74,.1); font-size: 28px; }
+.participant-prize-list strong, .participant-prize-list small { display: block; }
+.participant-prize-list strong { font-size: 11px; }
+.participant-prize-list p { margin: 4px 0; color: #9d96a2; font-size: 8px; }
+.participant-prize-list small { color: var(--amber-soft); font-size: 8px; }
+.participant-draw-button { width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 16px; border: 0; border-radius: 12px; padding: 13px; color: #2a2011; background: var(--amber); font-size: 11px; font-weight: 900; cursor: pointer; }
+.participant-draw-button:disabled { cursor: not-allowed; opacity: .4; }
+.participant-lottery-result { min-height: 430px; display: grid; justify-items: center; align-content: center; gap: 10px; text-align: center; }
+.participant-lottery-result > svg, .participant-lottery-result > span { width: 72px; height: 72px; display: grid; place-items: center; overflow: hidden; border: 1px solid rgba(241,184,74,.25); border-radius: 20px; padding: 15px; color: var(--amber); background: rgba(241,184,74,.09); font-size: 38px; }
+.participant-lottery-result h3, .participant-lottery-result p { margin: 0; }
+.participant-lottery-result h3 { font-family: var(--font-display); font-size: 25px; }
+.participant-lottery-result p { max-width: 340px; color: #99929f; font-size: 10px; line-height: 1.7; }
+.participant-lottery-result > div { display: grid; gap: 4px; margin-top: 7px; border: 1px dashed rgba(241,184,74,.35); border-radius: 11px; padding: 11px 18px; }
+.participant-lottery-result > div span { color: #8c8490; font-size: 8px; }
+.participant-lottery-result > div strong { color: #ffe4a0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 18px; }
+.participant-lottery-result > button { margin-top: 8px; border: 0; border-radius: 10px; padding: 11px 22px; color: #2a2011; background: var(--amber); font-size: 10px; font-weight: 900; cursor: pointer; }
+.participant-lottery-result.is-winner > small { color: var(--amber); font-weight: 800; letter-spacing: .08em; }
+
 .lottery-overview-grid { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(300px, 0.7fr); align-items: start; gap: 18px; }
 .lottery-catalog { display: grid; gap: 10px; }
 .lottery-card { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; align-items: center; gap: 14px; padding: 16px; color: #302b32; text-align: left; cursor: pointer; }
@@ -2845,7 +2890,7 @@ a {
 .lottery-detail-heading h2 { margin: 4px 0; font-family: var(--font-display); font-size: 27px; color: #2e2930; }
 .lottery-detail-heading p { margin: 0; color: #918a80; font-size: 9px; }
 .lottery-delete { display: inline-flex; align-items: center; gap: 5px; border: 1px solid #ebc8c2; border-radius: 9px; padding: 9px 11px; color: #9b4237; background: #fff6f4; font-size: 9px; cursor: pointer; }
-.lottery-requirements, .lottery-prizes-section, .lottery-draw-panel, .lottery-winners { padding: 22px; color: #302b32; }
+.lottery-requirements, .lottery-prizes-section, .lottery-winners { padding: 22px; color: #302b32; }
 .lottery-requirements > p, .lottery-probability-note { margin: -7px 0 15px; color: #90887e; font-size: 9px; }
 .lottery-achievement-checks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
 .lottery-achievement-checks label { display: grid; grid-template-columns: auto 34px 1fr; align-items: center; gap: 8px; border: 1px solid #e5ded1; border-radius: 10px; padding: 9px; cursor: pointer; }
@@ -2862,10 +2907,11 @@ a {
 .lottery-prize-editor, .lottery-new-prize { border: 1px solid #e3dccf; border-radius: 14px; padding: 15px; background: #fcfaf5; }
 .lottery-prize-stock { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
 .lottery-prize-stock > span { width: 42px; height: 42px; display: grid; place-items: center; overflow: hidden; border-radius: 11px; color: #78581f; background: #f3e8c8; font-size: 24px; }
+.lottery-prize-stock > i { width: 9px; height: 28px; flex: 0 0 auto; border-radius: 999px; }
 .lottery-prize-stock strong, .lottery-prize-stock small { display: block; }
 .lottery-prize-stock strong { font-size: 12px; }
 .lottery-prize-stock small { color: #9a9288; font-size: 8px; }
-.lottery-prize-fields { display: grid; grid-template-columns: 1fr 1.25fr 1.2fr 110px 220px; align-items: end; gap: 9px; }
+.lottery-prize-fields { display: grid; grid-template-columns: 1fr 1.25fr 1.2fr 110px; align-items: end; gap: 9px; }
 .lottery-prize-fields > label { display: grid; gap: 5px; color: #746d63; font-size: 8px; font-weight: 700; }
 .lottery-prize-fields input { width: 100%; min-width: 0; border: 1px solid #dcd4c6; border-radius: 8px; padding: 8px 9px; color: #302b32; background: #fffdf8; font-size: 9px; }
 .lottery-icon-field { display: grid; grid-template-columns: 34px 1fr; gap: 5px 7px; align-items: end; }
@@ -2873,17 +2919,27 @@ a {
 .lottery-icon-field > label:first-of-type { display: grid; gap: 5px; color: #746d63; font-size: 8px; font-weight: 700; }
 .lottery-image-upload, .lottery-icon-field > button { display: inline-flex; align-items: center; justify-content: center; gap: 4px; border: 1px solid #dcd4c6; border-radius: 7px; padding: 5px; color: #766e64; background: #fffdf8; font-size: 7px; cursor: pointer; }
 .lottery-image-upload input { display: none; }
-.probability-control { display: grid; grid-template-columns: 76px 1fr; align-items: center; gap: 10px; }
-.probability-pie { width: 72px; height: 72px; position: relative; display: grid; place-items: center; border-radius: 50%; touch-action: none; cursor: crosshair; box-shadow: inset 0 0 0 1px rgba(80, 68, 48, 0.12); }
-.probability-pie::after { content: ""; width: 48px; height: 48px; position: absolute; border-radius: 50%; background: #fffdf8; }
-.probability-pie span { z-index: 1; color: #5f4a25; font-size: 10px; font-weight: 800; }
-.probability-pie i { width: 2px; height: 36px; position: absolute; top: 0; left: 35px; transform-origin: 1px 36px; background: transparent; }
-.probability-pie i::before { content: ""; width: 9px; height: 9px; position: absolute; top: -3px; left: -4px; border: 2px solid #fff; border-radius: 50%; background: #8b6726; box-shadow: 0 1px 4px rgba(0,0,0,.24); }
-.probability-control > label { display: grid; gap: 4px; color: #746d63; font-size: 8px; font-weight: 700; }
-.probability-control > label > div { display: grid; grid-template-columns: 1fr auto; align-items: center; border: 1px solid #dcd4c6; border-radius: 8px; overflow: hidden; background: #fffdf8; }
-.probability-control > label input { border: 0; }
-.probability-control > label span { padding-right: 8px; }
-.probability-control > label small { color: #aaa196; font-size: 7px; }
+.shared-probability-editor { display: grid; grid-template-columns: 210px minmax(0, 1fr); align-items: center; gap: 24px; margin-bottom: 18px; border: 1px solid #e3dccf; border-radius: 16px; padding: 18px; background: #fffdf8; }
+.shared-probability-pie { width: 190px; height: 190px; position: relative; display: grid; place-items: center; border-radius: 50%; touch-action: none; cursor: crosshair; box-shadow: inset 0 0 0 1px rgba(80,68,48,.12), 0 10px 24px rgba(59,48,30,.08); }
+.shared-probability-pie::after { content: ""; width: 116px; height: 116px; position: absolute; border-radius: 50%; background: #fffdf8; box-shadow: 0 0 0 1px rgba(80,68,48,.08); }
+.shared-probability-pie > span { z-index: 1; display: grid; justify-items: center; gap: 3px; padding: 0 17px; text-align: center; }
+.shared-probability-pie > span strong { color: #4d3c20; font-size: 22px; }
+.shared-probability-pie > span small { max-width: 82px; overflow: hidden; color: #8e8579; font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+.shared-probability-pie > i { width: 3px; height: 95px; position: absolute; z-index: 2; top: 0; left: 93.5px; transform-origin: 1.5px 95px; border-radius: 999px; }
+.shared-probability-pie > i::before { content: ""; width: 13px; height: 13px; position: absolute; top: -4px; left: -5px; border: 3px solid #fff; border-radius: 50%; background: inherit; box-shadow: 0 2px 7px rgba(0,0,0,.26); }
+.shared-probability-legend { display: grid; gap: 7px; }
+.shared-probability-legend > div { display: grid; grid-template-columns: 1fr 96px; align-items: center; gap: 8px; border: 1px solid #e5ded2; border-radius: 10px; padding: 6px 8px; }
+.shared-probability-legend > div.is-selected { border-color: #b79450; background: #fff7df; box-shadow: 0 0 0 2px rgba(183,148,80,.09); }
+.shared-probability-legend > div > button { min-width: 0; display: flex; align-items: center; gap: 8px; border: 0; padding: 2px; color: #4c464d; background: transparent; text-align: left; cursor: pointer; }
+.shared-probability-legend > div > button i, .shared-probability-unassigned > i { width: 11px; height: 11px; flex: 0 0 auto; border-radius: 3px; }
+.shared-probability-legend > div > button span { overflow: hidden; font-size: 9px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+.shared-probability-legend > div > label { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 4px; color: #766e64; font-size: 9px; }
+.shared-probability-legend input { width: 100%; min-width: 0; border: 1px solid #d9d1c5; border-radius: 7px; padding: 6px; background: #fff; }
+.shared-probability-unassigned { color: #7e776e; background: #f4f1eb; }
+.shared-probability-unassigned > i { background: #e7e2d9; }
+.shared-probability-unassigned > span { font-size: 9px; font-weight: 800; }
+.shared-probability-unassigned > strong { justify-self: end; font-size: 10px; }
+.shared-probability-empty { margin-bottom: 16px; border: 1px dashed #d8d0c4; border-radius: 13px; padding: 24px; color: #948b80; background: #fcfaf5; font-size: 9px; text-align: center; }
 .lottery-prize-actions { display: flex; justify-content: flex-end; gap: 7px; margin-top: 12px; }
 .lottery-new-prize { margin-top: 14px; background: #fff9e9; }
 .lottery-new-prize-title { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; color: #6f521d; }
@@ -2891,19 +2947,6 @@ a {
 .lottery-new-prize-title strong { font-size: 10px; }
 .lottery-new-prize-title small { margin-top: 2px; color: #9d8b67; font-size: 7px; }
 .lottery-new-prize > .primary-admin-button { margin-top: 12px; }
-.lottery-draw-panel { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 20px; color: #fff8df; background: #25212a; }
-.lottery-draw-panel h2 { margin: 4px 0 7px; font-family: var(--font-display); font-size: 24px; }
-.lottery-draw-panel p { margin: 0; color: #aaa2af; font-size: 9px; }
-.lottery-draw-button { display: inline-flex; align-items: center; gap: 7px; border: 1px solid #e0b65e; border-radius: 11px; padding: 12px 18px; color: #2b2112; background: #f1c76f; font-size: 11px; font-weight: 900; cursor: pointer; }
-.lottery-draw-button:disabled { cursor: not-allowed; opacity: .42; }
-.lottery-draw-result { grid-column: 1 / -1; display: flex; align-items: center; gap: 12px; border: 1px solid rgba(255,255,255,.12); border-radius: 12px; padding: 14px; background: rgba(255,255,255,.05); }
-.lottery-draw-result > span { width: 48px; height: 48px; display: grid; place-items: center; overflow: hidden; border-radius: 12px; color: #f7d88e; background: rgba(241,184,74,.13); font-size: 26px; }
-.lottery-draw-result small, .lottery-draw-result strong { display: block; }
-.lottery-draw-result small { color: #938b97; font-size: 8px; }
-.lottery-draw-result strong { margin-top: 3px; color: #ffe5a3; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 19px; }
-.lottery-draw-result p { margin-top: 4px; }
-.lottery-draw-result.is-empty { display: block; }
-.lottery-draw-result.is-empty strong { font-family: inherit; font-size: 13px; }
 .lottery-winners article { display: grid; grid-template-columns: 36px 1fr auto; align-items: center; gap: 10px; border-top: 1px solid #e8e2d7; padding: 10px 0; }
 .lottery-winners article > span { width: 34px; height: 34px; display: grid; place-items: center; overflow: hidden; border-radius: 9px; background: #f3e9ce; font-size: 18px; }
 .lottery-winners strong, .lottery-winners small { display: block; }
@@ -2914,7 +2957,6 @@ a {
 
 @media (min-width: 900px) and (max-width: 1180px) {
   .lottery-prize-fields { grid-template-columns: 1fr 1fr; }
-  .probability-control { grid-column: span 2; }
   .lottery-achievement-checks { grid-template-columns: repeat(2, 1fr); }
   .activity-catalog {
     grid-template-columns: repeat(2, minmax(240px, 1fr));

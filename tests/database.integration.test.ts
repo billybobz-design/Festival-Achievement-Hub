@@ -17,6 +17,7 @@ test("database enforces concurrent, duplicate, and configured reset limits", { s
       subtitle: "Database integration test",
       dateLabel: "Now",
       status: "active",
+      webScannerEnabled: false,
       categories: [{ id: "category", name: "Category", description: "", sortOrder: 1 }],
       achievements: [{ id: "achievement", claimCode: "integration-code", name: "Achievement", description: "Test achievement", icon: "🏆", categoryId: "category", enabled: true, sortOrder: 1, claimLimit: 3 }],
     });
@@ -35,6 +36,7 @@ test("database enforces concurrent, duplicate, and configured reset limits", { s
       subtitle: "Database integration test",
       dateLabel: "Now",
       status: "active",
+      webScannerEnabled: false,
       categories: [{ id: "category", name: "Category", description: "", sortOrder: 1 }],
       achievements: [{ id: "achievement", claimCode: "integration-code", name: "Achievement", description: "Test achievement", icon: "🏆", categoryId: "category", enabled: true, sortOrder: 1, claimLimit: 1 }],
     });
