@@ -45,9 +45,9 @@ import {
 import { createClientId } from "../lib/client-id";
 import { AdminApiError, describeAdminError, readAdminJson } from "../lib/admin-api";
 import { LotteryManager } from "./LotteryManager";
-import { TaskLineEditor } from "./TaskLineEditor";
+import { ClueEditor, TaskLineEditor } from "./TaskLineEditor";
 
-type AdminSection = "administrators" | "overview" | "new-activity" | "activity" | "achievements" | "categories" | "lotteries" | "packages";
+type AdminSection = "administrators" | "overview" | "new-activity" | "activity" | "achievements" | "task-line" | "clues" | "categories" | "lotteries" | "packages";
 
 export type AdminUiSession = {
   user: { id: number; username: string; role: "superadmin" | "admin" };
@@ -152,6 +152,8 @@ export function AdminConsole({ session, onSessionExpired }: { session: AdminUiSe
   const [newActivityPackage, setNewActivityPackage] = useState<File | null>(null);
   const [categoryName, setCategoryName] = useState("");
   const [draft, setDraft] = useState(emptyAchievement);
+  const [selectedAchievementId, setSelectedAchievementId] = useState<string | null>(null);
+  const [achievementDescriptionDraft, setAchievementDescriptionDraft] = useState("");
   const [notice, setNotice] = useState("");
   const [claimStats, setClaimStats] = useState<ClaimStat[]>([]);
   const [limitDrafts, setLimitDrafts] = useState<Record<string, string>>({});
@@ -194,6 +196,7 @@ export function AdminConsole({ session, onSessionExpired }: { session: AdminUiSe
     () => Object.fromEntries(claimStats.map((stat) => [stat.achievementId, stat])),
     [claimStats],
   );
+  const selectedAchievement = config.achievements.find((achievement) => achievement.id === selectedAchievementId) ?? null;
 
   async function loadOnlineState(eventId: string) {
     setOnlineStatus("connecting");
@@ -425,11 +428,26 @@ export function AdminConsole({ session, onSessionExpired }: { session: AdminUiSe
       id: createClientId("ach_"),
       name: draft.name.trim(),
       claimCode: draft.claimCode.trim(),
-      description: draft.description.trim() || "等待补充成就说明",
+      description: draft.description.trim(),
       sortOrder: config.achievements.length * 10 + 10,
     };
     const started = persist({ ...config, achievements: [...config.achievements, nextAchievement] }, "新成就已加入");
     if (started) setDraft({ ...emptyAchievement, categoryId: "" });
+  }
+
+  function openAchievementDetail(achievement: FestivalAchievement) {
+    setSelectedAchievementId(achievement.id);
+    setAchievementDescriptionDraft(achievement.description);
+  }
+
+  function saveAchievementDescription() {
+    if (!selectedAchievementId) return;
+    persist({
+      ...config,
+      achievements: config.achievements.map((achievement) => achievement.id === selectedAchievementId
+        ? { ...achievement, description: achievementDescriptionDraft.trim() }
+        : achievement),
+    }, "成就描述已保存");
   }
 
   function toggleAchievement(achievementId: string) {
@@ -783,7 +801,9 @@ export function AdminConsole({ session, onSessionExpired }: { session: AdminUiSe
             <>
               <div className="admin-nav-context"><span>当前活动</span><strong>{config.name}</strong><small>{config.eventId}</small></div>
               <AdminNav active={section === "activity"} onClick={() => setSection("activity")} icon={<CalendarDays size={18} />} label="活动设置" />
-              <AdminNav active={section === "achievements"} onClick={() => setSection("achievements")} icon={<Sparkles size={18} />} label="成就管理" count={config.achievements.length} />
+              <AdminNav active={section === "achievements"} onClick={() => { setSelectedAchievementId(null); setSection("achievements"); }} icon={<Sparkles size={18} />} label="成就管理" count={config.achievements.length} />
+              <AdminNav active={section === "task-line"} onClick={() => setSection("task-line")} icon={<GitBranch size={18} />} label="任务线" count={(config.taskLine ?? []).length} />
+              <AdminNav active={section === "clues"} onClick={() => setSection("clues")} icon={<Eye size={18} />} label="线索提示" count={config.achievements.filter((item) => item.hintEnabled).length} />
               <AdminNav active={section === "categories"} onClick={() => setSection("categories")} icon={<Boxes size={18} />} label="分类管理" count={config.categories.length} />
               <AdminNav active={section === "lotteries"} onClick={() => setSection("lotteries")} icon={<Trophy size={18} />} label="抽奖管理" />
               <AdminNav active={section === "packages"} onClick={openPackageManager} icon={<FolderArchive size={18} />} label="活动包管理" />
@@ -937,67 +957,54 @@ export function AdminConsole({ session, onSessionExpired }: { session: AdminUiSe
           </div>
         ) : null}
 
-        {section === "achievements" ? (
+        {section === "achievements" ? selectedAchievement ? (
+          <div className="admin-content">
+            <section className="admin-panel achievement-detail-page">
+              <button className="text-admin-button" type="button" onClick={() => setSelectedAchievementId(null)}><ArrowLeft size={15} />返回成就列表</button>
+              <div className="achievement-detail-heading">
+                <span className="admin-achievement-icon"><AchievementIconGraphic icon={selectedAchievement.icon} /></span>
+                <div><span className="panel-kicker">ACHIEVEMENT DETAIL</span><h2>{selectedAchievement.name}</h2><small>{selectedAchievement.claimCode} · {config.categories.find((category) => category.id === selectedAchievement.categoryId)?.name ?? defaultAchievementCategory.name}</small></div>
+              </div>
+              <label className="achievement-description-editor">成就描述（可选）<textarea maxLength={500} value={achievementDescriptionDraft} onChange={(event) => setAchievementDescriptionDraft(event.target.value)} placeholder="可以留空，或补充解锁条件与故事说明" /></label>
+              <button className="primary-admin-button" type="button" onClick={saveAchievementDescription}><Save size={15} />保存描述</button>
+              <div className="achievement-detail-settings">
+                <button type="button" onClick={() => openEmojiPicker({ kind: "achievement", achievementId: selectedAchievement.id })}><SmilePlus size={13} />更换图标</button>
+                <span>已领 {claimStatsById[selectedAchievement.id]?.claimedCount ?? 0}/{claimStatsById[selectedAchievement.id]?.maxClaims ?? selectedAchievement.claimLimit}</span>
+                <div className="claim-limit-editor"><input aria-label={`${selectedAchievement.name}领取上限`} type="number" min="1" max="100000" value={limitDrafts[selectedAchievement.id] ?? String(selectedAchievement.claimLimit)} onChange={(event) => setLimitDrafts({ ...limitDrafts, [selectedAchievement.id]: event.target.value })} /><button type="button" onClick={() => saveClaimLimit(selectedAchievement.id)}>保存上限</button></div>
+                <button type="button" disabled={qrBusyId === selectedAchievement.id} onClick={() => void showAchievementQr(selectedAchievement)}><Eye size={12} />查看二维码</button>
+                <button type="button" disabled={qrBusyId === selectedAchievement.id} onClick={() => void downloadAchievementQr(selectedAchievement)}><Download size={12} />下载二维码</button>
+                <button type="button" onClick={() => void resetOnlineCount(selectedAchievement.id)}>清零计数</button>
+                <button type="button" onClick={() => toggleAchievement(selectedAchievement.id)}>{selectedAchievement.enabled ? "停用成就" : "启用成就"}</button>
+              </div>
+            </section>
+          </div>
+        ) : (
           <div className="admin-content split-content">
             <section className="admin-panel achievement-list-panel">
               <div className="panel-heading"><div><span className="panel-kicker">ACHIEVEMENTS</span><h2>当前成就</h2></div><span>{config.achievements.length}项</span></div>
-              <TaskLineEditor key={config.eventId + config.achievements.map(item => item.id).join(",")} config={config} save={persist} />
-              <div className="admin-achievement-list">
-                {config.achievements.map((achievement) => {
-                  const stat = claimStatsById[achievement.id];
-                  return (
-                    <article key={achievement.id} draggable onDragStart={event => event.dataTransfer.setData("text/plain", achievement.id)} className={!achievement.enabled ? "is-disabled" : ""}>
-                      <span className="admin-achievement-icon"><AchievementIconGraphic icon={achievement.icon} /></span>
-                      <div className="admin-achievement-copy">
-                        <strong>{achievement.name}</strong>
-                        <small>{achievement.claimCode} · {config.categories.find((category) => category.id === achievement.categoryId)?.name ?? defaultAchievementCategory.name}</small>
-                        <div className="admin-icon-controls">
-                          <button onClick={() => openEmojiPicker({ kind: "achievement", achievementId: achievement.id })}><SmilePlus size={11} />输入 Emoji</button>
-                        </div>
-                      </div>
-                      <div className="claim-limit-editor">
-                        <span>已领 {stat?.claimedCount ?? 0}/{stat?.maxClaims ?? achievement.claimLimit ?? 100}</span>
-                        <div><input aria-label={`${achievement.name}领取上限`} type="number" min="1" max="100000" value={limitDrafts[achievement.id] ?? String(achievement.claimLimit || 100)} onChange={(event) => setLimitDrafts({ ...limitDrafts, [achievement.id]: event.target.value })} /><button onClick={() => saveClaimLimit(achievement.id)}>保存</button></div>
-                      </div>
-                      <div className="claim-row-actions">
-                        <button disabled={qrBusyId === achievement.id} onClick={() => void showAchievementQr(achievement)}><Eye size={12} />查看二维码</button>
-                        <button disabled={qrBusyId === achievement.id} onClick={() => void downloadAchievementQr(achievement)}><Download size={12} />下载二维码</button>
-                        <button onClick={() => void resetOnlineCount(achievement.id)}>清零计数</button>
-                        <button onClick={() => toggleAchievement(achievement.id)}>{achievement.enabled ? "停用成就" : "启用成就"}</button>
-                      </div>
-                    </article>
-                  );
-                })}
+              <div className="achievement-summary-grid">
+                {config.achievements.map((achievement) => <button type="button" key={achievement.id} className={!achievement.enabled ? "is-disabled" : ""} onClick={() => openAchievementDetail(achievement)}>
+                  <span className="admin-achievement-icon"><AchievementIconGraphic icon={achievement.icon} /></span>
+                  <strong>{achievement.name}</strong>
+                  <ChevronRight size={16} />
+                </button>)}
               </div>
             </section>
             <form className="admin-panel create-form" onSubmit={addAchievement}>
               <div className="panel-heading"><div><span className="panel-kicker">NEW RECORD</span><h2>新增成就</h2></div><CirclePlus size={20} /></div>
               <label>成就名称<input value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} placeholder="例如：钟楼见证人" /></label>
               <label>二维码识别码<input value={draft.claimCode} onChange={(event) => setDraft({ ...draft, claimCode: event.target.value })} placeholder="bell-tower-01" /></label>
-              <label>成就说明<textarea value={draft.description} onChange={(event) => setDraft({ ...draft, description: event.target.value })} placeholder="写下解锁条件或发现内容" /></label>
-              <div className="new-achievement-icon-field">
-                <span className="new-achievement-icon-preview"><AchievementIconGraphic icon={draft.icon} /></span>
-                <div>
-                  <strong>成就图案</strong>
-                  <small>使用内置 Emoji，避免将大型二进制内容写入数据库。</small>
-                  <div className="new-achievement-icon-actions">
-                    <button type="button" onClick={() => openEmojiPicker({ kind: "draft" })}><SmilePlus size={13} />输入 Emoji</button>
-                  </div>
-                </div>
-              </div>
-              <label>
-                所属分类（可选）
-                <select value={draft.categoryId} onChange={(event) => setDraft({ ...draft, categoryId: event.target.value })}>
-                  <option value="">{defaultAchievementCategory.name}（不选择分类）</option>
-                  {config.categories.map((category) => <option value={category.id} key={category.id}>{category.name}</option>)}
-                </select>
-                <small>不选择时，成就会自动显示在默认分类中。</small>
-              </label>
+              <label>成就描述（可选）<textarea value={draft.description} onChange={(event) => setDraft({ ...draft, description: event.target.value })} placeholder="可以留空，创建后点击成就进入详情编辑" /></label>
+              <div className="new-achievement-icon-field"><span className="new-achievement-icon-preview"><AchievementIconGraphic icon={draft.icon} /></span><div><strong>成就图案</strong><small>使用 Emoji 或上传的图案。</small><div className="new-achievement-icon-actions"><button type="button" onClick={() => openEmojiPicker({ kind: "draft" })}><SmilePlus size={13} />输入 Emoji</button></div></div></div>
+              <label>所属分类（可选）<select value={draft.categoryId} onChange={(event) => setDraft({ ...draft, categoryId: event.target.value })}><option value="">{defaultAchievementCategory.name}（不选择分类）</option>{config.categories.map((category) => <option value={category.id} key={category.id}>{category.name}</option>)}</select></label>
               <label>领取上限<input type="number" min="1" max="100000" value={draft.claimLimit} onChange={(event) => setDraft({ ...draft, claimLimit: Number.parseInt(event.target.value || "1", 10) })} /></label>
               <button className="primary-admin-button" type="submit"><Save size={16} />保存成就</button>
             </form>
           </div>
         ) : null}
+
+        {section === "task-line" ? <TaskLineEditor key={`${config.eventId}:${config.taskLine?.join(",")}`} config={config} save={persist} /> : null}
+        {section === "clues" ? <ClueEditor key={`${config.eventId}:${config.achievements.map((item) => `${item.id}:${item.hintEnabled}`).join(",")}`} config={config} save={persist} /> : null}
 
         {section === "categories" ? (
           <div className="admin-content">
@@ -1165,6 +1172,8 @@ function sectionTitle(section: AdminSection) {
     "new-activity": "新建活动",
     activity: "活动设置",
     achievements: "成就管理",
+    "task-line": "任务线",
+    clues: "线索提示",
     categories: "分类管理",
     lotteries: "抽奖管理",
     packages: "活动包管理",

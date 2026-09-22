@@ -18,7 +18,7 @@ export const festivalAchievementSchema = z.object({
   id,
   claimCode: z.string().trim().min(3).max(120).regex(/^[a-z0-9_-]+$/i),
   name: shortText,
-  description: z.string().trim().min(1).max(500),
+  description: z.string().max(500),
   icon,
   categoryId: id.or(z.literal("")),
   enabled: z.boolean(),

@@ -7,6 +7,12 @@ test("legacy activities start with an empty task line", () => {
   assert.deepEqual(festivalConfigSchema.parse(defaultFestivalConfig).taskLine, []);
 });
 
+test("achievement descriptions may be empty", () => {
+  const config = structuredClone(defaultFestivalConfig);
+  config.achievements[0].description = "";
+  assert.equal(festivalConfigSchema.safeParse(config).success, true);
+});
+
 test("task lines reject duplicates and unknown achievements", () => {
   assert.equal(festivalConfigSchema.safeParse({ ...defaultFestivalConfig, taskLine: ["ach_demo_1", "ach_demo_1"] }).success, false);
   assert.equal(festivalConfigSchema.safeParse({ ...defaultFestivalConfig, taskLine: ["missing"] }).success, false);
