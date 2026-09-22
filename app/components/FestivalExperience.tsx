@@ -448,6 +448,7 @@ export function FestivalExperience() {
       }
 
       if (message.method === "drawLottery") {
+        const requestId = message.requestId;
         const params = message.params as { lotteryId?: unknown } | null;
         const lotteryId = params?.lotteryId;
         if (typeof lotteryId !== "number" || !Number.isInteger(lotteryId) || lotteryId <= 0) {
@@ -476,9 +477,9 @@ export function FestivalExperience() {
               : lotteryWins;
             setLotteries(nextLotteries);
             setLotteryWins(nextWins);
-            respond(message.requestId, true, { result, lotteries: nextLotteries, wins: nextWins });
+            respond(requestId, true, { result, lotteries: nextLotteries, wins: nextWins });
           } catch (error) {
-            respond(message.requestId, false, undefined, error instanceof Error ? error.message : "抽奖暂时无法进行");
+            respond(requestId, false, undefined, error instanceof Error ? error.message : "抽奖暂时无法进行");
           }
         })();
         return;
