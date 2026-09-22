@@ -58,6 +58,21 @@ test("database enforces concurrent, duplicate, and configured reset limits", { s
     });
     assert.equal((await claimOnline(eventId, "integration-code", "device-after-reset-1")).status, "claimed");
     assert.equal((await claimOnline(eventId, "integration-code", "device-after-reset-2")).status, "limit_reached");
+    const { loadFestivalConfigFromServer } = await import("../db/claims");
+    const configured = (await loadFestivalConfigFromServer(eventId))!;
+    await syncFestivalConfig({
+      ...configured,
+      taskLine: ["first", "second"],
+      achievements: ["first", "second", "independent"].map((id, index) => ({
+        id, claimCode: "task-" + id, name: id, description: "Task", icon: "🕯️",
+        categoryId: "category", enabled: true, sortOrder: index, claimLimit: 10,
+      })),
+    });
+    await assert.rejects(claimOnline(eventId, "task-second", "task-device"), /前置成就/);
+    assert.equal((await claimOnline(eventId, "task-independent", "task-device")).status, "claimed");
+    assert.equal((await claimOnline(eventId, "task-first", "task-device")).status, "claimed");
+    assert.equal((await claimOnline(eventId, "task-second", "task-device")).status, "claimed");
+    await assert.rejects(claimOnline(eventId, "task-second", "other-device"), /前置成就/);
   } finally {
     if (databaseUrl) {
       const sql = getSql();

@@ -1,4 +1,5 @@
 import { getSql } from "./index";
+import { HttpError } from "../app/lib/server-http";
 import type { FestivalConfig } from "../app/lib/demo-store";
 import { festivalConfigSchema, newFestivalSchema } from "../app/lib/validation";
 
@@ -105,7 +106,22 @@ export async function hashClaimDeviceId(eventId: string, deviceId: string) {
 
 export async function claimOnline(eventId: string, claimCode: string, deviceId: string): Promise<OnlineClaimResult> {
   const deviceHash = await hashClaimDeviceId(eventId, deviceId);
-  const rows = await getSql()`SELECT * FROM claim_achievement(${eventId}, ${claimCode}, ${deviceHash})` as Array<{
+  const rows = await getSql().begin(async tx => {
+    const events = await tx`SELECT config_json FROM claim_events WHERE event_id = ${eventId} FOR SHARE`;
+    if (events[0]) {
+      const config = normalizeConfig(JSON.parse(events[0].config_json));
+      const target = config.achievements.find(item => item.claimCode === claimCode);
+      const index = (config.taskLine ?? []).indexOf(target?.id ?? "");
+      if (index > 0) {
+        const required = config.taskLine!.slice(0, index);
+        const records = await tx`SELECT achievement_id FROM claim_records WHERE event_id = ${eventId} AND device_hash = ${deviceHash} AND achievement_id IN ${tx(required)} FOR SHARE`;
+        if (records.length !== required.length) {
+          throw new HttpError(409, "请先完成任务线中的前置成就，再领取此成就。", "PREREQUISITE_REQUIRED");
+        }
+      }
+    }
+    return tx`SELECT * FROM claim_achievement(${eventId}, ${claimCode}, ${deviceHash})`;
+  }) as Array<{
     result_status: OnlineClaimResult["status"]; achievement_id: string | null; achievement_name: string | null;
     achievement_description: string | null; achievement_icon: string | null;
     result_claimed_count: number | null; result_max_claims: number | null;

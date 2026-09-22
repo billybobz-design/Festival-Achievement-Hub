@@ -25,6 +25,9 @@ export type FestivalAchievement = {
   sortOrder: number;
   claimLimit: number;
   hidden?: boolean;
+  hintEnabled?: boolean;
+  hintText?: string;
+  hintImage?: string;
 };
 
 export type FestivalConfig = {
@@ -37,6 +40,7 @@ export type FestivalConfig = {
   webScannerEnabled: boolean;
   categories: FestivalCategory[];
   achievements: FestivalAchievement[];
+  taskLine?: string[];
 };
 
 export type UnlockRecord = {

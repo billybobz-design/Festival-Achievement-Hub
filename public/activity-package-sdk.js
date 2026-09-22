@@ -47,7 +47,7 @@
     writable: false,
     value: Object.freeze({
       version: 1,
-      getContext: function () { return request("getContext"); },
+      getContext: function (options) { return request("getContext", options); },
       openScanner: function () { return request("openScanner"); },
       openLotteries: function () { return request("openLotteries"); },
       openPrizes: function () { return request("openPrizes"); },

@@ -25,6 +25,9 @@ export const festivalAchievementSchema = z.object({
   sortOrder: z.number().int().min(0).max(1_000_000),
   claimLimit: z.number().int().min(1).max(100_000),
   hidden: z.boolean().optional(),
+  hintEnabled: z.boolean().optional(),
+  hintText: z.string().max(1000).optional(),
+  hintImage: z.string().max(350_000).refine(value => !value || /^https:\/\//i.test(value) || /^data:image\/(png|jpeg|webp);base64,/i.test(value), "invalid hint image").optional(),
 }).strict();
 
 export const festivalConfigSchema = z.object({
@@ -37,6 +40,7 @@ export const festivalConfigSchema = z.object({
   webScannerEnabled: z.boolean().default(false),
   categories: z.array(festivalCategorySchema).max(100),
   achievements: z.array(festivalAchievementSchema).max(500),
+  taskLine: z.array(id).max(500).default([]),
 }).strict().superRefine((config, context) => {
   const categoryIds = new Set(config.categories.map((item) => item.id));
   const achievementIds = new Set<string>();
@@ -53,6 +57,9 @@ export const festivalConfigSchema = z.object({
     }
     achievementIds.add(achievement.id);
     claimCodes.add(achievement.claimCode);
+  }
+  if (new Set(config.taskLine).size !== config.taskLine.length || config.taskLine.some(id => !achievementIds.has(id))) {
+    context.addIssue({ code: "custom", path: ["taskLine"], message: "任务线不能包含重复或不存在的成就" });
   }
 });
 

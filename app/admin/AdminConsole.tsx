@@ -45,6 +45,7 @@ import {
 import { createClientId } from "../lib/client-id";
 import { AdminApiError, describeAdminError, readAdminJson } from "../lib/admin-api";
 import { LotteryManager } from "./LotteryManager";
+import { TaskLineEditor } from "./TaskLineEditor";
 
 type AdminSection = "administrators" | "overview" | "new-activity" | "activity" | "achievements" | "categories" | "lotteries" | "packages";
 
@@ -940,11 +941,12 @@ export function AdminConsole({ session, onSessionExpired }: { session: AdminUiSe
           <div className="admin-content split-content">
             <section className="admin-panel achievement-list-panel">
               <div className="panel-heading"><div><span className="panel-kicker">ACHIEVEMENTS</span><h2>当前成就</h2></div><span>{config.achievements.length}项</span></div>
+              <TaskLineEditor key={config.eventId + config.achievements.map(item => item.id).join(",")} config={config} save={persist} />
               <div className="admin-achievement-list">
                 {config.achievements.map((achievement) => {
                   const stat = claimStatsById[achievement.id];
                   return (
-                    <article key={achievement.id} className={!achievement.enabled ? "is-disabled" : ""}>
+                    <article key={achievement.id} draggable onDragStart={event => event.dataTransfer.setData("text/plain", achievement.id)} className={!achievement.enabled ? "is-disabled" : ""}>
                       <span className="admin-achievement-icon"><AchievementIconGraphic icon={achievement.icon} /></span>
                       <div className="admin-achievement-copy">
                         <strong>{achievement.name}</strong>

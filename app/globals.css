@@ -94,6 +94,23 @@ a {
   background: #090a12;
 }
 
+.task-line-editor { border: 1px solid #d7ccbc; border-radius: 12px; padding: 18px; margin-bottom: 22px; color: #443b32; background: #faf6ed; }
+.task-line-editor p { font-size: 12px; line-height: 1.7; }
+.task-drop-zone { min-height: 90px; border: 2px dashed #b99b72; border-radius: 8px; padding: 12px; display: grid; gap: 8px; }
+.task-drop-zone > div { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 10px; background: #e9dfcd; cursor: grab; }
+.task-drop-zone strong { flex: 1; }
+.task-line-editor button { padding: 7px 10px; cursor: pointer; }
+.task-options { display: grid; gap: 8px; margin-top: 12px; }
+.task-options details { border: 1px solid #ded5c8; padding: 10px; border-radius: 6px; background: #fffdfa; }
+.task-options summary { cursor: grab; }
+.task-options label { display: block; margin-top: 10px; font-size: 12px; }
+.task-options textarea { display: block; width: 100%; min-height: 80px; padding: 8px; }
+.task-options img { display: block; max-width: 220px; max-height: 160px; margin: 10px 0; object-fit: contain; }
+.achievement-card { position: relative; }
+.achievement-hint-trigger { position: absolute; inset: 0; z-index: 1; border: 0; background: transparent; cursor: pointer; }
+.achievement-hint-trigger:focus-visible { outline: 2px solid var(--amber); }
+.achievement-hint-image { max-width: min(90vw, 480px); max-height: 55vh; object-fit: contain; }
+
 .festival-header {
   display: flex;
   align-items: flex-start;

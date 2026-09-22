@@ -22,7 +22,7 @@ export async function POST(request: Request) {
   try {
     requireSameOrigin(request);
     await requireAdminSession(request, { csrf: true });
-    const payload = adminActionSchema.parse(await readJson(request));
+    const payload = adminActionSchema.parse(await readJson(request, 8 * 1024 * 1024));
     if (payload.action === "sync") {
       const config = await syncFestivalConfig(payload.config);
       return noStoreJson({ config, stats: await getClaimStats(config.eventId) });

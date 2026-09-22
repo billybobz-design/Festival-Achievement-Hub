@@ -10,6 +10,7 @@
   var pageContent = document.getElementById("lottery-page-content");
   var contextCache = null;
   var pageMode = "lotteries";
+  var drawBusy = false;
 
   function element(tag, className, text) {
     var node = document.createElement(tag);
@@ -53,9 +54,14 @@
     var chapters = document.getElementById("chapters");
     chapters.replaceChildren();
     var categories = context.event.categories.slice().sort(function (a, b) { return a.sortOrder - b.sortOrder; });
+    var taskLine = context.event.taskLine || [];
+    if (taskLine.length) categories.unshift({ id: "__task_line__", name: "主线任务", description: "按顺序探索，完成前一站后开启下一站。" });
     if (items.some(function (item) { return !item.categoryId; })) categories.push({ id: "", name: "其他线索", description: "现场追加的探索记录" });
     categories.forEach(function (category, index) {
-      var achievements = items.filter(function (item) { return item.categoryId === category.id; }).sort(function (a, b) { return a.sortOrder - b.sortOrder; });
+      var achievements = category.id === "__task_line__"
+        ? taskLine.map(function (id) { return items.find(function (item) { return item.id === id; }); }).filter(Boolean)
+        : items.filter(function (item) { return item.categoryId === category.id && taskLine.indexOf(item.id) < 0; }).sort(function (a, b) { return a.sortOrder - b.sortOrder; });
+      if (!achievements.length) return;
       var chapter = element("section", "chapter");
       var heading = element("div", "chapter-head");
       heading.append(element("span", "chapter-number", String(index + 1).padStart(2, "0")), element("h3", "", category.name), element("span", "chapter-count", achievements.filter(function (item) { return item.unlocked; }).length + " / " + achievements.length));
@@ -66,7 +72,29 @@
         var top = element("div", "achievement-top");
         var icon = element("span", "achievement-icon");
         setIcon(icon, item.icon, item.name);
-        top.append(icon, element("span", "achievement-state", item.unlocked ? "✓ 已解锁" : "待发现"));
+        var blocked = !item.unlocked && taskLine.slice(0, Math.max(0, taskLine.indexOf(item.id))).some(function (id) { return !context.achievements.some(function (entry) { return entry.id === id && entry.unlocked; }); });
+        top.append(icon, element("span", "achievement-state", item.unlocked ? "✓ 已解锁" : blocked ? "前置任务未完成" : "待发现"));
+        if (blocked) card.classList.add("is-blocked");
+        if (item.hintEnabled) {
+          card.tabIndex = 0;
+          card.setAttribute("role", "button");
+          card.setAttribute("aria-label", "查看" + item.name + "的提示");
+          function showHint() {
+            pageMode = "hint";
+            page.hidden = false;
+            document.body.classList.add("page-open");
+            pageTitle.textContent = item.name;
+            pageContent.replaceChildren(element("p", "draw-description", item.hintText || "暂无文字提示"));
+            if (item.hintImage) {
+              var hintImage = element("img", "hint-image");
+              hintImage.src = item.hintImage;
+              hintImage.alt = item.name + "提示";
+              pageContent.append(hintImage);
+            }
+          }
+          card.addEventListener("click", showHint);
+          card.addEventListener("keydown", function (event) { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); showHint(); } });
+        }
         card.append(top, element("h4", "", item.name), element("p", "", item.description));
         grid.append(card);
       });
@@ -145,6 +173,7 @@
   }
 
   function renderDrawResult(result) {
+    pageMode = "result";
     pageTitle.textContent = "抽签结果";
     pageContent.replaceChildren();
     var box = element("div", "draw-result" + (result.status === "winner" ? " is-winner" : ""));
@@ -174,6 +203,8 @@
   }
 
   async function drawLottery(lottery, button) {
+    if (drawBusy) return;
+    drawBusy = true;
     button.disabled = true;
     button.textContent = "正在询问愿望…";
     try {
@@ -186,6 +217,8 @@
       button.disabled = false;
       button.textContent = lottery.eligible ? "重新尝试抽取" : "集齐指定成就后可参加";
       button.before(element("p", "draw-error", error.message || "抽奖暂不可用，请稍后再试。"));
+    } finally {
+      drawBusy = false;
     }
   }
 
@@ -203,14 +236,15 @@
   }
 
   async function connect(silent) {
+    if (drawBusy) return;
     retry.hidden = true;
     lotteryButton.disabled = true;
     if (!silent) status.textContent = "正在连接你的活动档案…";
     try {
       if (!window.NCPAActivity) throw new Error("请先将 ZIP 活动包导入 NCPA 平台，并从活动页打开。");
-      renderMain(await window.NCPAActivity.getContext());
+      renderMain(await window.NCPAActivity.getContext({ themedNavigation: true }));
       if (!page.hidden) {
-        if (pageMode === "wins") renderWins(); else renderLotteryList();
+        if (pageMode === "wins") renderWins(); else if (pageMode === "lotteries") renderLotteryList();
       }
     } catch (error) {
       status.textContent = error.message || "暂时无法读取活动，请重新连接。";
@@ -219,10 +253,13 @@
   }
 
   lotteryButton.addEventListener("click", function () { openPage("lotteries"); });
+  document.getElementById("nav-lottery").addEventListener("click", function () { openPage("lotteries"); });
+  document.getElementById("nav-prizes").addEventListener("click", function () { openPage("wins"); });
   prizesButton.addEventListener("click", function () { openPage("wins"); });
   document.getElementById("close-lottery-page").addEventListener("click", closePage);
   retry.addEventListener("click", function () { connect(false); });
   window.addEventListener("focus", function () { connect(true); });
   document.addEventListener("visibilitychange", function () { if (!document.hidden) connect(true); });
   connect(false);
+  window.setInterval(function () { if (!document.hidden && page.hidden) connect(true); }, 10000);
 }());

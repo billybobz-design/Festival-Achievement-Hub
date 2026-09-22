@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @next/next/no-img-element -- Optional event hint images include administrator-uploaded data URLs. */
 
 import {
   AlertTriangle,
@@ -20,7 +21,6 @@ import {
   FestivalConfig,
   UnlockState,
   defaultAchievementCategory,
-  loadUnlockState,
   saveUnlockState,
 } from "../lib/demo-store";
 import { clearClaimParameters, parseClaimPayload } from "../lib/claim-link";
@@ -91,11 +91,13 @@ export function FestivalExperience() {
   const [unlockState, setUnlockState] = useState<UnlockState>({ version: 1, unlocked: {} });
   const [hydrated, setHydrated] = useState(false);
   const [claimResult, setClaimResult] = useState<ClaimResult | null>(null);
+  const [hint, setHint] = useState<FestivalAchievement | null>(null);
   const [scannerOpen, setScannerOpen] = useState(false);
   const [scannerStatus, setScannerStatus] = useState<ScannerStatus>("starting");
   const [scannerMessage, setScannerMessage] = useState("");
   const [directClaimPending, setDirectClaimPending] = useState(false);
   const [packageEntryUrl, setPackageEntryUrl] = useState<string | null>(null);
+  const [themedNavigation, setThemedNavigation] = useState(false);
   const [maintenance, setMaintenance] = useState<MaintenanceState>({ active: false, message: "系统正在维护，请稍后再试。" });
   const [lotteryWins, setLotteryWins] = useState<LotteryWin[]>([]);
   const [prizesOpen, setPrizesOpen] = useState(false);
@@ -125,12 +127,14 @@ export function FestivalExperience() {
       try {
         const response = await fetch(endpoint);
         if (!response.ok) throw new Error("活动读取失败");
-        const payload = await response.json() as { config: FestivalConfig | null; maintenance?: MaintenanceState };
+        const payload = await response.json() as { config: FestivalConfig | null; maintenance?: MaintenanceState; unlockedIds?: string[] };
         if (cancelled) return;
         setMaintenance(payload.maintenance ?? { active: false, message: "系统正在维护，请稍后再试。" });
         const nextConfig = payload.config?.status === "active" ? payload.config : inactiveFestivalConfig;
         setConfig(nextConfig);
-        setUnlockState(nextConfig.status === "active" ? loadUnlockState(nextConfig.eventId) : { version: 1, unlocked: {} });
+        setUnlockState(nextConfig.status === "active" ? {
+          version: 1, unlocked: Object.fromEntries((payload.unlockedIds ?? []).map(id => [id, { unlockedAt: "", source: "qr" as const }])),
+        } : { version: 1, unlocked: {} });
         if (nextConfig.status === "active") {
           try {
             const packageResponse = await fetch(`/api/activity-package?eventId=${encodeURIComponent(nextConfig.eventId)}`, { cache: "no-store" });
@@ -215,12 +219,13 @@ export function FestivalExperience() {
   );
   const visibleCategories = useMemo(
     () => [
+      ...((config.taskLine ?? []).length ? [{ id: "__task_line__", name: "主线任务", description: "按顺序完成前置成就，开启下一站。", sortOrder: -1 }] : []),
       ...(activeAchievements.some((achievement) => !achievement.categoryId)
         ? [defaultAchievementCategory]
         : []),
       ...config.categories,
     ],
-    [activeAchievements, config.categories],
+    [activeAchievements, config.categories, config.taskLine],
   );
   const unlockedCount = activeAchievements.filter(
     (achievement) => unlockState.unlocked[achievement.id],
@@ -265,7 +270,7 @@ export function FestivalExperience() {
       const result = await response.json() as OnlineClaimResponse;
       const isStructuredNotFound = response.status === 404 && result.status === "not_found";
       if (!response.ok && !isStructuredNotFound) {
-        throw new Error(response.status === 429 ? "操作过于频繁，请一分钟后再试。" : "服务器暂时无法完成校验，请稍后重试。");
+        throw new Error(response.status === 429 ? "操作过于频繁，请一分钟后再试。" : result.error || "服务器暂时无法完成校验，请稍后重试。");
       }
       const localAchievement = config.achievements.find((item) => item.claimCode === claimCode);
       const achievement = result.achievement ?? localAchievement;
@@ -396,10 +401,12 @@ export function FestivalExperience() {
       if (!message || message.source !== "ncpa-activity-package" || message.type !== "request" || typeof message.requestId !== "string") return;
 
       if (message.method === "getContext") {
+        if ((message.params as { themedNavigation?: boolean } | undefined)?.themedNavigation === true) setThemedNavigation(true);
         const achievements = activeAchievements.map((achievement) => ({
           ...achievement,
           claimCode: "",
           unlocked: Boolean(unlockState.unlocked[achievement.id]),
+          blocked: (config.taskLine ?? []).slice(0, Math.max(0, (config.taskLine ?? []).indexOf(achievement.id))).some(id => !unlockState.unlocked[id]),
         }));
         respond(message.requestId, true, {
           event: config,
@@ -667,8 +674,8 @@ export function FestivalExperience() {
                 .sort((a, b) => a.sortOrder - b.sortOrder)
                 .map((category) => {
                   const items = activeAchievements
-                    .filter((achievement) => achievement.categoryId === category.id)
-                    .sort((a, b) => a.sortOrder - b.sortOrder);
+                    .filter((achievement) => category.id === "__task_line__" ? config.taskLine?.includes(achievement.id) : achievement.categoryId === category.id && !config.taskLine?.includes(achievement.id))
+                    .sort((a, b) => category.id === "__task_line__" ? config.taskLine!.indexOf(a.id) - config.taskLine!.indexOf(b.id) : a.sortOrder - b.sortOrder);
                   if (!items.length) return null;
                   return (
                     <div className="category-block" key={category.id}>
@@ -682,6 +689,7 @@ export function FestivalExperience() {
                           const record = unlockState.unlocked[achievement.id];
                           return (
                             <article className={`achievement-card ${record ? "is-unlocked" : "is-locked"}`} key={achievement.id}>
+                              {achievement.hintEnabled && <button type="button" className="achievement-hint-trigger" onClick={() => setHint(achievement)} aria-label={`查看${achievement.name}提示`} />}
                               <div className="achievement-icon" aria-hidden="true">
                                 {record ? <AchievementIconGraphic icon={achievement.icon} /> : <LockKeyhole size={21} />}
                               </div>
@@ -689,7 +697,7 @@ export function FestivalExperience() {
                                 <h4>{achievement.hidden && !record ? "未知档案" : achievement.name}</h4>
                                 <p>{achievement.hidden && !record ? "完成特殊条件后揭晓" : achievement.description}</p>
                                 <span className="achievement-state">
-                                  {record ? <><Check size={12} /> 已解锁</> : "尚未发现"}
+                                  {record ? <><Check size={12} /> 已解锁</> : (config.taskLine ?? []).slice(0, Math.max(0, (config.taskLine ?? []).indexOf(achievement.id))).some(id => !unlockState.unlocked[id]) ? "前置任务未完成" : "尚未发现"}
                                 </span>
                               </div>
                             </article>
@@ -707,7 +715,7 @@ export function FestivalExperience() {
           </div>
         )}
 
-        {!maintenance.active && config.status === "active" ? (
+        {!maintenance.active && config.status === "active" && !(packageEntryUrl && themedNavigation) ? (
           <div className="festival-action-bar">
             {lotteries.length ? <button className="lottery-entry-button" type="button" onClick={() => { setLotteriesOpen(true); setLotteryDrawResult(null); setSelectedLotteryId(null); }}>
               <Dices size={17} /><span>参加抽奖</span><strong>{lotteries.length}</strong>
@@ -760,6 +768,11 @@ export function FestivalExperience() {
           </div>
         ) : null}
 
+        {hint ? <div className="claim-overlay" role="dialog" aria-modal="true" aria-label="成就提示">
+          <button className="overlay-close" onClick={() => setHint(null)} aria-label="关闭提示"><X size={20} /></button>
+          <h2>{hint.name}</h2><p>{hint.hintText || "暂无文字提示"}</p>
+          {hint.hintImage && <img className="achievement-hint-image" src={hint.hintImage} alt={hint.name + "提示"} />}
+        </div> : null}
         {directClaimPending ? (
           <div className="claim-overlay direct-claim-pending" role="status" aria-live="polite">
             <div className="claim-seal verifying"><QrCode size={34} /></div>

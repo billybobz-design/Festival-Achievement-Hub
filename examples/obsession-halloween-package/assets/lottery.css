@@ -1,4 +1,10 @@
 @charset "UTF-8";
+.theme-nav { position: sticky; top: 0; z-index: 5; display: flex; justify-content: space-around; gap: 8px; padding: 12px; background: #211813f5; border-bottom: 1px solid #76513d; }
+.theme-nav a, .theme-nav button { color: #ded2bc; font: inherit; font-size: 12px; text-decoration: none; border: 0; background: transparent; cursor: pointer; padding: 7px; }
+.hint-image { display: block; max-width: 100%; margin: 18px auto; border: 1px solid #76513d; }
+.achievement[role="button"] { cursor: pointer; }
+.achievement[role="button"]:focus-visible { outline: 2px solid #d49275; outline-offset: 3px; }
+.achievement.is-blocked { border-style: dashed; }
 
 .lottery {
   position: relative;
