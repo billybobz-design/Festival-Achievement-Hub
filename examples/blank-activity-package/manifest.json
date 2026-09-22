@@ -1,0 +1,7 @@
+{
+  "eventId": "blank-activity-template",
+  "name": "空白活动包模板",
+  "version": "2.0.0",
+  "entry": "index.html",
+  "sdkVersion": 1
+}

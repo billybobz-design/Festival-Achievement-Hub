@@ -392,7 +392,7 @@ export function FestivalExperience() {
 
     function handlePackageMessage(event: MessageEvent) {
       if (event.source !== activeFrame.contentWindow) return;
-      const message = event.data as { source?: string; type?: string; requestId?: string; method?: string } | null;
+      const message = event.data as { source?: string; type?: string; requestId?: string; method?: string; params?: unknown } | null;
       if (!message || message.source !== "ncpa-activity-package" || message.type !== "request" || typeof message.requestId !== "string") return;
 
       if (message.method === "getContext") {
@@ -404,6 +404,8 @@ export function FestivalExperience() {
         respond(message.requestId, true, {
           event: config,
           achievements,
+          lotteries,
+          wins: lotteryWins,
           progress: {
             unlocked: achievements.filter((achievement) => achievement.unlocked).length,
             total: achievements.length,
@@ -422,12 +424,72 @@ export function FestivalExperience() {
         return;
       }
 
+      if (message.method === "openLotteries") {
+        if (!lotteries.length) {
+          respond(message.requestId, false, undefined, "当前活动还没有可参加的抽奖项目");
+          return;
+        }
+        setLotteryDrawResult(null);
+        setSelectedLotteryId(null);
+        setLotteriesOpen(true);
+        respond(message.requestId, true, true);
+        return;
+      }
+
+      if (message.method === "openPrizes") {
+        setPrizesOpen(true);
+        setPrizesLoading(true);
+        fetch(`/api/lottery/wins?eventId=${encodeURIComponent(config.eventId)}`, { cache: "no-store" })
+          .then((response) => response.ok ? response.json() : null)
+          .then((payload: { wins: LotteryWin[] } | null) => { if (payload) setLotteryWins(payload.wins); })
+          .finally(() => setPrizesLoading(false));
+        respond(message.requestId, true, true);
+        return;
+      }
+
+      if (message.method === "drawLottery") {
+        const params = message.params as { lotteryId?: unknown } | null;
+        const lotteryId = params?.lotteryId;
+        if (typeof lotteryId !== "number" || !Number.isInteger(lotteryId) || lotteryId <= 0) {
+          respond(message.requestId, false, undefined, "抽奖项目编号无效");
+          return;
+        }
+        void (async () => {
+          try {
+            const response = await fetch("/api/lottery", {
+              method: "POST",
+              cache: "no-store",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({ eventId: config.eventId, lotteryId }),
+            });
+            const result = await response.json() as ParticipantDrawResult & { error?: string };
+            if (!response.ok) throw new Error(result.error || "抽奖暂时无法进行");
+            const [lotteryResponse, winsResponse] = await Promise.all([
+              fetch(`/api/lottery?eventId=${encodeURIComponent(config.eventId)}`, { cache: "no-store" }),
+              fetch(`/api/lottery/wins?eventId=${encodeURIComponent(config.eventId)}`, { cache: "no-store" }),
+            ]);
+            const nextLotteries = lotteryResponse.ok
+              ? (await lotteryResponse.json() as { lotteries: ParticipantLottery[] }).lotteries
+              : lotteries;
+            const nextWins = winsResponse.ok
+              ? (await winsResponse.json() as { wins: LotteryWin[] }).wins
+              : lotteryWins;
+            setLotteries(nextLotteries);
+            setLotteryWins(nextWins);
+            respond(message.requestId, true, { result, lotteries: nextLotteries, wins: nextWins });
+          } catch (error) {
+            respond(message.requestId, false, undefined, error instanceof Error ? error.message : "抽奖暂时无法进行");
+          }
+        })();
+        return;
+      }
+
       respond(message.requestId, false, undefined, "不支持的活动包操作");
     }
 
     window.addEventListener("message", handlePackageMessage);
     return () => window.removeEventListener("message", handlePackageMessage);
-  }, [activeAchievements, config, openScanner, packageEntryUrl, unlockState]);
+  }, [activeAchievements, config, lotteries, lotteryWins, openScanner, packageEntryUrl, unlockState]);
 
   function closeScanner() {
     stopLiveScanner();

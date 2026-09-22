@@ -6,6 +6,7 @@
   <meta name="theme-color" content="#161311">
   <title>OBSESSION · 许愿之后</title>
   <link rel="stylesheet" href="assets/theme.css">
+  <link rel="stylesheet" href="assets/lottery.css">
   <script src="/activity-package-sdk.js" defer></script>
   <script src="assets/activity.js" defer></script>
 </head>
@@ -35,9 +36,26 @@
       <div id="chapters"></div>
       <button id="retry" class="retry" type="button" hidden>重新连接平台</button>
     </section>
+    <section class="lottery" aria-labelledby="lottery-title">
+      <div class="section-label"><span>终局档案 / THE FINAL DRAW</span><span id="lottery-count">00</span></div>
+      <div class="lottery-mark" aria-hidden="true">✦</div>
+      <h2 id="lottery-title">愿望留下了回礼</h2>
+      <p id="lottery-message">正在读取今晚的抽奖档案…</p>
+      <div class="lottery-actions">
+        <button id="lottery" type="button" disabled>参加终局抽签<span>查看奖品与参与条件 →</span></button>
+        <button id="prizes" class="secondary" type="button">我的奖品<span id="prize-count">尚无中奖记录</span></button>
+      </div>
+      <small>抽奖资格、概率与库存由平台在线校验；中奖记录与当前浏览器绑定。</small>
+    </section>
     <section class="field-notes"><span>入场须知 / FIELD NOTES</span><p>按现场指引探索，扫描各线索点二维码领取成就。请勿奔跑或触碰演员；如感到不适，请向工作人员示意离场。</p><small>领取以服务器校验为准。手机系统相机也可直接扫描现场二维码。</small></section>
     <footer class="end-mark"><span>愿望可以结束。你可以离开。</span><small>NCPA · HALLOWEEN / OBSESSION</small></footer>
   </main>
-  <div class="scan-dock"><button id="scan" type="button" disabled><span aria-hidden="true">⊞</span><span>扫描线索二维码<small>记录你抵达的每一站</small></span><span aria-hidden="true">↗</span></button></div>
+  <section id="lottery-page" class="lottery-page" aria-label="终局抽签" hidden>
+    <header class="lottery-page-header">
+      <div><span>OBSESSION / FINAL ARCHIVE</span><h2 id="lottery-page-title">终局抽签</h2></div>
+      <button id="close-lottery-page" type="button" aria-label="关闭抽奖页面">×</button>
+    </header>
+    <div id="lottery-page-content" class="lottery-page-content"></div>
+  </section>
 </body>
 </html>

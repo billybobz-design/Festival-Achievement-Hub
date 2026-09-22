@@ -1,0 +1,86 @@
+@charset "UTF-8";
+
+.lottery {
+  position: relative;
+  overflow: hidden;
+  margin: 38px 19px 0;
+  border: 1px solid #76513d;
+  padding: 23px;
+  background: radial-gradient(circle at 86% 15%, #a6463638, transparent 33%), linear-gradient(145deg, #2b211a, #171310);
+  box-shadow: 5px 6px 0 #090807;
+}
+
+.lottery::before {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  border: 1px solid #82604b45;
+  pointer-events: none;
+}
+
+.lottery > .section-label { position: relative; color: #aa8f7c; }
+.lottery-mark { position: absolute; right: 23px; top: 38px; color: #ba5544; font-family: Georgia, serif; font-size: 78px; line-height: 1; opacity: .22; transform: rotate(12deg); }
+.lottery h2 { position: relative; margin: 22px 0 8px; font-family: "Songti SC", STSong, serif; font-size: 24px; font-weight: 500; letter-spacing: .04em; }
+.lottery > p { position: relative; max-width: 390px; margin: 0 0 18px; color: #b9a697; font-size: 11px; line-height: 1.8; }
+.lottery-actions { position: relative; display: grid; grid-template-columns: 1.2fr .8fr; gap: 9px; }
+.lottery-actions button { border: 1px solid #c27157; padding: 13px 12px; color: #fff0d8; background: #8e352b; text-align: left; font-size: 11px; cursor: pointer; }
+.lottery-actions button.secondary { border-color: #5c4940; background: #211b17; color: #d0c2b0; }
+.lottery-actions button span { display: block; margin-top: 4px; color: #e4ad99; font-size: 8px; }
+.lottery-actions button.secondary span { color: #8f8073; }
+.lottery-actions button:disabled { opacity: .45; cursor: not-allowed; }
+.lottery > small { position: relative; display: block; margin-top: 13px; color: #77695e; font-size: 8px; line-height: 1.7; }
+.end-mark { padding-bottom: 55px; }
+
+@media (max-width: 390px) {
+  .lottery-actions { grid-template-columns: 1fr; }
+}
+
+body.page-open { overflow: hidden; }
+.lottery-page { position: fixed; inset: 0; z-index: 20; overflow-y: auto; color: #ded2bc; background: radial-gradient(circle at 78% 4%, #6d2d2440, transparent 28%), #120f0d; }
+.lottery-page-header { position: sticky; top: 0; z-index: 2; max-width: 600px; display: flex; align-items: center; justify-content: space-between; margin: auto; border-bottom: 1px solid #49372e; padding: 17px 22px; background: #120f0ded; backdrop-filter: blur(12px); }
+.lottery-page-header span { color: #a9816e; font-size: 8px; letter-spacing: .16em; }
+.lottery-page-header h2 { margin: 2px 0 0; font-family: "Songti SC", STSong, serif; font-size: 21px; font-weight: 500; letter-spacing: .06em; }
+.lottery-page-header button { width: 36px; height: 36px; border: 1px solid #59443a; border-radius: 50%; color: #d8c9b5; background: #211914; font-size: 24px; line-height: 1; cursor: pointer; }
+.lottery-page-content { max-width: 600px; min-height: calc(100svh - 74px); margin: auto; padding: 23px 19px 52px; }
+.draw-intro { position: relative; overflow: hidden; border: 1px solid #6b4939; padding: 25px 22px; background: linear-gradient(145deg, #33231b, #191310); box-shadow: 5px 6px 0 #080605; }
+.draw-intro::after { content: "01"; position: absolute; right: 13px; bottom: -31px; color: #b84d3d22; font-family: Georgia, serif; font-size: 110px; font-style: italic; }
+.draw-intro span { position: relative; z-index: 1; color: #bd7d65; font-size: 8px; letter-spacing: .18em; }
+.draw-intro h3 { position: relative; z-index: 1; margin: 14px 0 7px; font-family: "Songti SC", STSong, serif; font-size: 25px; font-weight: 500; }
+.draw-intro p { position: relative; z-index: 1; max-width: 390px; margin: 0; color: #a79688; font-size: 10px; line-height: 1.8; }
+.draw-card { margin-top: 18px; border: 1px solid #42342c; padding: 18px; background: linear-gradient(155deg, #251d18, #171310); }
+.draw-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; border-bottom: 1px solid #3b3029; padding-bottom: 13px; }
+.draw-card-head span { color: #816d60; font-family: Georgia, serif; font-size: 8px; letter-spacing: .12em; }
+.draw-card-head h3 { margin: 4px 0 0; font-size: 16px; font-weight: 500; }
+.draw-card-head em { border: 1px solid #56473e; padding: 4px 7px; color: #8f8175; font-size: 8px; font-style: normal; white-space: nowrap; }
+.draw-card-head em.is-ready { border-color: #9c5d46; color: #d49275; background: #7d342522; }
+.draw-description { margin: 12px 0; color: #9f9184; font-size: 10px; line-height: 1.7; }
+.draw-prize-list { display: grid; gap: 8px; margin-top: 13px; }
+.draw-prize { display: grid; grid-template-columns: 45px 1fr; align-items: center; gap: 11px; border: 1px solid #352b26; padding: 10px; background: #100e0c88; }
+.draw-prize-icon, .win-icon, .draw-result-icon { display: grid; place-items: center; overflow: hidden; color: #d6ae7e; background: #7c493122; font-size: 25px; }
+.draw-prize-icon { width: 44px; height: 44px; }
+.draw-prize-icon img, .win-icon img, .draw-result-icon img { width: 100%; height: 100%; object-fit: cover; }
+.draw-prize-copy strong, .draw-prize-copy small { display: block; }
+.draw-prize-copy strong { font-size: 11px; font-weight: 500; }
+.draw-prize-copy p { margin: 3px 0; color: #897d73; font-size: 8px; line-height: 1.5; }
+.draw-prize-copy small { color: #b9856e; font-size: 8px; }
+.draw-action, .draw-result-done { width: 100%; border: 1px solid #c27157; padding: 13px; color: #fff0d8; background: #8e352b; font-size: 11px; cursor: pointer; }
+.draw-action { margin-top: 14px; }
+.draw-action:disabled { border-color: #443730; color: #776c64; background: #211c18; cursor: not-allowed; }
+.draw-error { margin: 13px 0 -3px; border-left: 2px solid #b84537; padding-left: 9px; color: #d38d78; font-size: 9px; }
+.draw-empty { margin-top: 18px; border: 1px dashed #493a32; padding: 46px 24px; color: #81746a; background: #181310; text-align: center; font-size: 10px; }
+.win-card { display: grid; grid-template-columns: 66px 1fr; gap: 14px; margin-top: 15px; border: 1px solid #76513d; padding: 17px; background: linear-gradient(145deg, #2a211b, #161210); box-shadow: 4px 5px 0 #090706; }
+.win-icon { width: 64px; height: 64px; border: 1px solid #724c39; font-size: 34px; }
+.win-copy > small { color: #b4765e; font-size: 8px; letter-spacing: .08em; }
+.win-copy h3 { margin: 4px 0; font-family: "Songti SC", STSong, serif; font-size: 21px; font-weight: 500; }
+.win-copy p { margin: 0; color: #96887d; font-size: 9px; }
+.win-copy time { display: block; margin-top: 8px; color: #675c55; font-size: 8px; }
+.win-code { display: grid; gap: 3px; margin-top: 12px; border: 1px dashed #7c5947; padding: 9px 11px; background: #0c0a0988; }
+.win-code span { color: #756961; font-size: 8px; }
+.win-code strong { color: #e8ba83; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 15px; letter-spacing: .06em; }
+.draw-result { min-height: calc(100svh - 125px); display: grid; justify-items: center; align-content: center; gap: 10px; padding: 30px 16px; text-align: center; }
+.draw-result-icon, .draw-result-symbol { width: 84px; height: 84px; display: grid; place-items: center; border: 1px solid #81533f; border-radius: 50%; color: #d7a270; background: #7b322522; font-size: 42px; box-shadow: 0 0 50px #9f3f2833; }
+.draw-result > small { color: #b8785e; font-size: 8px; letter-spacing: .17em; }
+.draw-result h3 { margin: 5px 0 0; font-family: "Songti SC", STSong, serif; font-size: 27px; font-weight: 500; }
+.draw-result > p { max-width: 330px; margin: 0; color: #988a7e; font-size: 10px; line-height: 1.7; }
+.draw-result .win-code { min-width: 230px; margin: 9px 0; }
+.draw-result-done { max-width: 260px; margin-top: 9px; }

@@ -4,7 +4,7 @@
   var sequence = 0;
   var pending = new Map();
 
-  function request(method) {
+  function request(method, params, retryEnabled) {
     if (window.parent === window) return Promise.reject(new Error("活动包未在平台中运行"));
     sequence += 1;
     var requestId = "ncpa-" + Date.now() + "-" + sequence;
@@ -15,9 +15,10 @@
           type: "request",
           requestId: requestId,
           method: method,
+          params: params,
         }, "*");
       }
-      var retryTimer = window.setInterval(send, 500);
+      var retryTimer = retryEnabled === false ? null : window.setInterval(send, 500);
       var timer = window.setTimeout(function () {
         window.clearInterval(retryTimer);
         pending.delete(requestId);
@@ -48,6 +49,9 @@
       version: 1,
       getContext: function () { return request("getContext"); },
       openScanner: function () { return request("openScanner"); },
+      openLotteries: function () { return request("openLotteries"); },
+      openPrizes: function () { return request("openPrizes"); },
+      drawLottery: function (lotteryId) { return request("drawLottery", { lotteryId: lotteryId }, false); },
     }),
   });
 }());

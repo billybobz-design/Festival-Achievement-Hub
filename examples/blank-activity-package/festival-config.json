@@ -1,0 +1,63 @@
+{
+  "eventId": "blank-activity-template",
+  "name": "示例活动",
+  "eyebrow": "NCPA · ACTIVITY TEMPLATE",
+  "subtitle": "这是一个可直接导入和继续修改的空白活动包，请替换活动名称、说明、时间、分类和成就内容。",
+  "dateLabel": "日期与时间待填写",
+  "status": "closed",
+  "webScannerEnabled": false,
+  "categories": [
+    {
+      "id": "sample-category",
+      "name": "示例分类",
+      "description": "把这里替换为当前分类的任务说明。",
+      "sortOrder": 10
+    }
+  ],
+  "achievements": [
+    {
+      "id": "sample-achievement-1",
+      "claimCode": "blank_01_k3n8v5qm",
+      "name": "1",
+      "description": "第 1 个示例成就，请替换名称、说明、图标和二维码点位。",
+      "icon": "1",
+      "categoryId": "sample-category",
+      "enabled": true,
+      "sortOrder": 10,
+      "claimLimit": 100
+    },
+    {
+      "id": "sample-achievement-2",
+      "claimCode": "blank_02_r7p4x9cw",
+      "name": "2",
+      "description": "第 2 个示例成就，请替换名称、说明、图标和二维码点位。",
+      "icon": "2",
+      "categoryId": "sample-category",
+      "enabled": true,
+      "sortOrder": 20,
+      "claimLimit": 100
+    },
+    {
+      "id": "sample-achievement-3",
+      "claimCode": "blank_03_t6b2m8hz",
+      "name": "3",
+      "description": "第 3 个示例成就，请替换名称、说明、图标和二维码点位。",
+      "icon": "3",
+      "categoryId": "sample-category",
+      "enabled": true,
+      "sortOrder": 30,
+      "claimLimit": 100
+    },
+    {
+      "id": "sample-achievement-4",
+      "claimCode": "blank_04_y9d5q2js",
+      "name": "4",
+      "description": "第 4 个示例成就，请替换名称、说明、图标和二维码点位。",
+      "icon": "4",
+      "categoryId": "sample-category",
+      "enabled": true,
+      "sortOrder": 40,
+      "claimLimit": 100
+    }
+  ]
+}

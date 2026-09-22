@@ -5,6 +5,7 @@
   "subtitle": "Bear 向神秘的 One Wish Willow 许愿柳许愿，让 Nikki 爱自己胜过一切。愿望成真后，这份爱却逐渐变成噩梦。跟随三章线索，寻找执念的出口。",
   "dateLabel": "万圣节特别活动 · 时间待公布",
   "status": "closed",
+  "webScannerEnabled": false,
   "categories": [
     { "id": "unspoken", "name": "未说出口的爱", "description": "第一章 / 在愿望发生之前，收集那些被忽略的线索。", "sortOrder": 0 },
     { "id": "willow", "name": "许愿柳的代价", "description": "第二章 / 许愿很容易，看清代价却很难。", "sortOrder": 1 },
