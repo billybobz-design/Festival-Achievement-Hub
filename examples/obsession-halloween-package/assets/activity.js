@@ -3,8 +3,8 @@
 
   var status = document.getElementById("connection");
   var retry = document.getElementById("retry");
-  var lotteryButton = document.getElementById("lottery");
-  var prizesButton = document.getElementById("prizes");
+  var lotteryButton = document.getElementById("nav-lottery");
+  var prizesButton = document.getElementById("nav-prizes");
   var page = document.getElementById("lottery-page");
   var pageTitle = document.getElementById("lottery-page-title");
   var pageContent = document.getElementById("lottery-page-content");
@@ -36,20 +36,13 @@
     var unlocked = items.filter(function (item) { return item.unlocked; }).length;
     var percent = items.length ? Math.round(unlocked / items.length * 100) : 0;
     var lotteries = Array.isArray(context.lotteries) ? context.lotteries : [];
-    var wins = Array.isArray(context.wins) ? context.wins : [];
-    var eligible = lotteries.filter(function (item) { return item.eligible; }).length;
 
     document.getElementById("total-count").textContent = unlocked + " / " + items.length;
     document.getElementById("progress-fill").style.width = percent + "%";
     document.querySelector(".progress-track").setAttribute("aria-valuenow", String(percent));
     document.getElementById("event-date").textContent = context.event.dateLabel;
     status.textContent = items.length && unlocked === items.length ? "全部证据已收集。谢谢你走完这一夜。" : "已收集 " + unlocked + " 枚成就。下一条线索，等你发现。";
-    document.getElementById("lottery-count").textContent = String(lotteries.length).padStart(2, "0");
-    document.getElementById("lottery-message").textContent = lotteries.length
-      ? eligible ? "你已满足 " + eligible + " 个抽奖项目的条件。愿望会给出怎样的答案？" : "终局抽签已经出现。继续收集指定成就即可获得参与资格。"
-      : "抽奖项目尚未开放，请留意现场公告。";
     lotteryButton.disabled = !lotteries.length;
-    document.getElementById("prize-count").textContent = wins.length ? "已有 " + wins.length + " 条中奖记录" : "尚无中奖记录";
 
     var chapters = document.getElementById("chapters");
     chapters.replaceChildren();
@@ -253,8 +246,6 @@
   }
 
   lotteryButton.addEventListener("click", function () { openPage("lotteries"); });
-  document.getElementById("nav-lottery").addEventListener("click", function () { openPage("lotteries"); });
-  document.getElementById("nav-prizes").addEventListener("click", function () { openPage("wins"); });
   prizesButton.addEventListener("click", function () { openPage("wins"); });
   document.getElementById("close-lottery-page").addEventListener("click", closePage);
   retry.addEventListener("click", function () { connect(false); });

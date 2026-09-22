@@ -1,45 +1,13 @@
 @charset "UTF-8";
 .theme-nav { position: sticky; top: 0; z-index: 5; display: flex; justify-content: space-around; gap: 8px; padding: 12px; background: #211813f5; border-bottom: 1px solid #76513d; }
 .theme-nav a, .theme-nav button { color: #ded2bc; font: inherit; font-size: 12px; text-decoration: none; border: 0; background: transparent; cursor: pointer; padding: 7px; }
+.theme-nav button:disabled { color: #776b62; cursor: not-allowed; }
 .hint-image { display: block; max-width: 100%; margin: 18px auto; border: 1px solid #76513d; }
 .achievement[role="button"] { cursor: pointer; }
 .achievement[role="button"]:focus-visible { outline: 2px solid #d49275; outline-offset: 3px; }
 .achievement.is-blocked { border-style: dashed; }
 
-.lottery {
-  position: relative;
-  overflow: hidden;
-  margin: 38px 19px 0;
-  border: 1px solid #76513d;
-  padding: 23px;
-  background: radial-gradient(circle at 86% 15%, #a6463638, transparent 33%), linear-gradient(145deg, #2b211a, #171310);
-  box-shadow: 5px 6px 0 #090807;
-}
-
-.lottery::before {
-  content: "";
-  position: absolute;
-  inset: 7px;
-  border: 1px solid #82604b45;
-  pointer-events: none;
-}
-
-.lottery > .section-label { position: relative; color: #aa8f7c; }
-.lottery-mark { position: absolute; right: 23px; top: 38px; color: #ba5544; font-family: Georgia, serif; font-size: 78px; line-height: 1; opacity: .22; transform: rotate(12deg); }
-.lottery h2 { position: relative; margin: 22px 0 8px; font-family: "Songti SC", STSong, serif; font-size: 24px; font-weight: 500; letter-spacing: .04em; }
-.lottery > p { position: relative; max-width: 390px; margin: 0 0 18px; color: #b9a697; font-size: 11px; line-height: 1.8; }
-.lottery-actions { position: relative; display: grid; grid-template-columns: 1.2fr .8fr; gap: 9px; }
-.lottery-actions button { border: 1px solid #c27157; padding: 13px 12px; color: #fff0d8; background: #8e352b; text-align: left; font-size: 11px; cursor: pointer; }
-.lottery-actions button.secondary { border-color: #5c4940; background: #211b17; color: #d0c2b0; }
-.lottery-actions button span { display: block; margin-top: 4px; color: #e4ad99; font-size: 8px; }
-.lottery-actions button.secondary span { color: #8f8073; }
-.lottery-actions button:disabled { opacity: .45; cursor: not-allowed; }
-.lottery > small { position: relative; display: block; margin-top: 13px; color: #77695e; font-size: 8px; line-height: 1.7; }
 .end-mark { padding-bottom: 55px; }
-
-@media (max-width: 390px) {
-  .lottery-actions { grid-template-columns: 1fr; }
-}
 
 body.page-open { overflow: hidden; }
 .lottery-page { position: fixed; inset: 0; z-index: 20; overflow-y: auto; color: #ded2bc; background: radial-gradient(circle at 78% 4%, #6d2d2440, transparent 28%), #120f0d; }
